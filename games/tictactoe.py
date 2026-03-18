@@ -1,9 +1,11 @@
 import pygame
+import numpy as np
 import sys
 #sys.path.insert("../")
 #import game.py as 
 
 pygame.init()
+
 width = 600
 height = 600
 screen = pygame.display.set_mode((width,height))
@@ -13,10 +15,8 @@ running = True
 circ = []
 cross = []
 player1 = True
-visited = [[]]*10
 
-for i in range(10):
-    visited[i]=[0]*10
+visited = np.zeros((10, 10), dtype=bool)
 
 while running:
     screen.fill("light blue")
@@ -61,7 +61,7 @@ while running:
         pygame.draw.line(screen, "red", (a - 18, b - 18), (a + 18, b + 18), 6)
         pygame.draw.line(screen, "red", (a + 18, b - 18), (a - 18, b + 18), 6)
     for a, b in circ:
-        pygame.draw.circle(screen, "black", (a,b), 20)
+        pygame.draw.circle(screen, "black", (a,b), 20, 6)
 
     pygame.display.flip()
 

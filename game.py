@@ -1,19 +1,128 @@
+from datetime import date
 import sys
 import numpy as np
 
-u1=sys.argv[1]
+username1=sys.argv[1]
 username2=sys.argv[2]
 
 print("Welcome to the game, " + username1 + " and " + username2 + "!")
 
 class Game:
     def __init__(self):
-        self.boardWIDTH=0 #x coordinate length
+		self.boardWIDTH=0 #x coordinate length
 		self.boardHEIGHT=0 #y coordinate length
-        self.board=[]
-        self.turn=0
-
+		self.board=[]
+		self.turn=0
     def switchTurn(self):
-        self.turn=not self.turn
+    	self.turn=not self.turn
     def check_win(self):
-        raise NotImplementedError
+    	raise NotImplementedError
+	
+
+
+gameName=None
+
+import tictactoe as ttt
+import connectfour as cf	
+import othello as oth
+#main game loop, where the user can select which game to play and the game will be executed accordingly
+while running:
+	#insert pygame stuff here
+	if(selection==)
+	ttt.play(username1,username2)
+#
+
+sys.path.insert("../")
+if gameName=="tictactoe":
+	winner,loser=ttt.tictactoe(username1,username2)
+elif gameName=="connect4":
+	winner,loser=cf.connectfour(username1,username2)	
+elif gameName=="othello":
+	winner,loser=oth.othello(username1,username2)
+
+#modifies stats_{gameName}.csv to update the number of wins and losses for each player
+def update_stats(winner,loser,gameName):
+	filename=gameName+".csv"
+	lines=None
+	with open(filename, "r") as f:
+		lines=f.readlines()
+		winnerfound=False
+		loserfound=False
+		for i in lines:
+			if(i.split(",")[0]==winner):
+				wins=int(i.split(",")[1])
+				losses=int(i.split(",")[2])
+				wins+=1
+				winnerfound=True
+				i=winner + "," + str(wins) + "," + str(losses) + "," + str(wins/losses) + "\n"
+			elif(i.split(",")[0]==loser):
+				wins=int(i.split(",")[1])
+				losses=int(i.split(",")[2])
+				losses+=1
+				loserfound=True
+				i=loser + "," + str(wins) + "," + str(losses) + "," + str(wins/losses) + "\n"
+		if(not winnerfound):
+			lines.append(winner + ",1,0,inf\n")
+		if(not loserfound):
+			lines.append(loser + ",0,1,0\n")
+	with open(filename, "w") as f:
+		f.writelines(lines)
+def update_game_frequencies(gameName):
+	#modifies game_frequencies.csv to update the number of times each game has been played
+	filename="game_frequencies.csv"
+	lines=None
+	with open(filename, "r") as f:
+		lines=f.readlines()
+		found=False
+		for i in lines:
+			if(i.split(",")[0]==gameName):
+				freq=int(i.split(",")[1])
+				freq+=1
+				found=True
+				i=gameName + "," + str(freq) + "\n"
+		if(not found):
+			lines.append(gameName + ",1\n")
+	with open(filename, "w") as f:
+		f.writelines(lines)
+
+def update_total_wins(winner):
+	#modifies user_total_wins.csv to update the number of times each user has won
+	filename="user_total_wins.csv"
+	lines=None
+	with open(filename, "r") as f:
+		lines=f.readlines()
+		found=False
+		for i in lines:
+			if(i.split(",")[0]==winner):
+				freq=int(i.split(",")[1])
+				freq+=1
+				found=True
+				i=winner + "," + str(freq) + "\n"
+		if(not found):
+			lines.append(winner + ",1\n")
+	with open(filename, "w") as f:
+		f.writelines(lines)
+
+update_stats(winner,loser,gameName)
+update_game_frequencies(gameName)
+update_total_wins(winner)
+#username,number of wins, number of losses, and Win/Loss ratio
+#game_frequencies is of form: game name, number of times played
+#user_total_wins is of form: username, number of wins
+
+
+#After each game concludes, game.py must append a row to history.csv containing: Winner, Loser, Date, and Game name.
+import time
+t=time.localtime()
+date=t.tm_year+"-"+t.tm_mon+"-"+t.tm_mday
+with open("history.csv", "a") as f:
+	f.write(winner + "," + loser + "," + date + "," + gameName + "\n")
+
+metric=None #metric to sort by for leaderboard
+#interactive gui to display the leaderboard sorted by certain metric
+
+#
+
+import os
+command="bash leaderboard.sh " + metric
+os.system(command)

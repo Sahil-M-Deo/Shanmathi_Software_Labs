@@ -13,7 +13,7 @@ username_exists(){
 }
 
 hash(){
-	echo $@
+	echo -n "$@" | sha256sum | cut -d ' ' -f 1 #echo -n to avoid the trailing newline as it will change the hash
 }
 
 create_user(){

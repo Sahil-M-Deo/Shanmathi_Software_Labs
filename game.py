@@ -1,5 +1,8 @@
 from datetime import date
 import sys
+import os
+import pygame
+import matplotlib
 import numpy as np
 
 username1=sys.argv[1]
@@ -42,7 +45,7 @@ elif gameName=="othello":
 
 #modifies stats_{gameName}.csv to update the number of wins and losses for each player
 def update_stats(winner,loser,gameName):
-	filename=gameName+".csv"
+	filename="stats_"+gameName+".csv"
 	lines=None
 	with open(filename, "r") as f:
 		lines=f.readlines()
@@ -118,11 +121,55 @@ date=t.tm_year+"-"+t.tm_mon+"-"+t.tm_mday
 with open("history.csv", "a") as f:
 	f.write(winner + "," + loser + "," + date + "," + gameName + "\n")
 
-metric=None #metric to sort by for leaderboard
-#interactive gui to display the leaderboard sorted by certain metric
+def show_leaderboard(metric, gameName):
+	pygame.init()
+	screen=pygame.display.set_mode((800,600))
+	pygame.display.set_caption("Leaderboard")
 
-#
+	running=True
+	metric=None
+	Wbutton=pygame.Rect(100,100,200,50)
+	Lbutton=pygame.Rect(100,200,200,50)
+	Rbutton=pygame.Rect(100,300,200,50)
+	Ebutton=pygame.Rect(100,400,200,50)
+	gameName="othello"
 
-import os
-command="bash leaderboard.sh " + metric
-os.system(command)
+	while running:
+		screen.fill((30,30,30))
+		pygame.draw.rect(screen,(0,200,0),Wbutton)
+		pygame.draw.rect(screen,(200,0,0),Lbutton)
+		pygame.draw.rect(screen,(0,0,200),Rbutton)
+		pygame.draw.rect(screen,(200,200,0),Ebutton)
+		font=pygame.font.Font(None,36)
+		Wtext=font.render("Wins",True,(0,0,0))
+		Ltext=font.render("Losses",True,(0,0,0))
+		Rtext=font.render("Ratio",True,(0,0,0))
+		ExitText=font.render("See Charts",True,(0,0,0))
+		screen.blit(Wtext,Wtext.get_rect(center=Wbutton.center))
+		screen.blit(Ltext,Ltext.get_rect(center=Lbutton.center))
+		screen.blit(Rtext,Rtext.get_rect(center=Rbutton.center))
+		screen.blit(ExitText,ExitText.get_rect(center=Ebutton.center))
+		for event in pygame.event.get():
+			if event.type==pygame.QUIT:
+				running=False
+			#pygame.Rect(x, y, width, height)
+			if event.type==pygame.MOUSEBUTTONDOWN:
+				mousepos=event.pos
+				if Wbutton.collidepoint(mousepos):
+					metric="wins"
+				elif Lbutton.collidepoint(mousepos):
+					metric="losses"
+				elif Rbutton.collidepoint(mousepos):
+					metric="ratio"
+				elif Ebutton.collidepoint(mousepos):
+					metric="exit"
+		if (metric!="exit" and metric!=None):
+			command="bash leaderboard.sh " + metric + " " + gameName
+			os.system(command)
+			metric=None
+		if(metric=="exit"):
+			running=False
+		pygame.display.flip()	
+
+		
+show_leaderboard(metric, gameName)

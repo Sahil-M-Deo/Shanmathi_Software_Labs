@@ -8,6 +8,11 @@ BLUE="\e[34m"
 RESET="\e[0m"
 BOLD="\e[1m"
 
+init_files(){
+	touch users.tsv
+	touch failed_logins.csv
+}
+
 recent_login(){
 	username=$@
 	line=$(grep -xE "^${username},[0-9]+$" failed_logins.csv)
@@ -100,6 +105,9 @@ three_attempts(){
 	done
 	return 1
 }
+
+
+init_files
 
 while true
 do

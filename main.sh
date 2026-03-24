@@ -7,23 +7,24 @@ YELLOW="\e[33m"
 BLUE="\e[34m"
 RESET="\e[0m"
 BOLD="\e[1m"
+GREY="\e[90m"
 
 init_files(){
 	touch users.tsv
 	touch failed_logins.csv
 }
 
-recent_login(){
-	username=$@
-	line=$(grep -xE "^${username},[0-9]+$" failed_logins.csv)
+handle_locked_users(){
+	local username=$@
+	local line=$(grep -E "^${username},[0-9]+$" failed_logins.csv)
 
 	if [[ $? -ne 0 ]]
 	then 
 		return 1
 	fi
 
-	time_now=$(date +%s)
-	time_then=$(echo "$line" | cut -d ',' -f 2)
+	local time_now=$(date +%s)
+	local time_then=$(echo "$line" | cut -d ',' -f 2)
 	if (( time_now - time_then >= lock_time ))
 	then 
 		sed -i "/^$line$/d" failed_logins.csv
@@ -35,15 +36,9 @@ recent_login(){
 }
 
 username_exists(){
-	name="$@"
-	while IFS=$'\t' read -r x y
-	do
-		if [[ "$x" == "$name" ]]
-		then
-			return 0
-		fi
-	done < users.tsv
-	return 1
+	local name="$@"
+	grep -q "^${name}${tab}" users.tsv
+	return $?
 }
 
 hash(){
@@ -52,52 +47,45 @@ hash(){
 
 create_user(){
 	echo "Username not found, creating new account:"
-	name="$@"
-	read -s -p "Enter password: " pwd
-	echo 
-	hash_pwd=$(hash "$pwd")
+	local name="$@"
+	local pwd
+	read -r -s -p "Enter password: " pwd
+	echo ""
+	local hash_pwd=$(hash "$pwd")
 	echo "${name}${tab}${hash_pwd}" >> users.tsv
+	echo -e "${endl}${GREEN}User '${name}' created successfully!${RESET}${endl}"
 }
 
 auth_user(){
-	line="$@"
-
-	if grep -Fxq "$line" users.tsv
-	then 
-		return 0 
-	fi
-	return 1
+	local line="$@"
+	grep -Fxq "$line" users.tsv
+	return $?
 }
 
 is_valid_username(){
-	username="$@"
-	if [[ "$username" =~ ^[a-zA-Z0-9_]+$ ]]
-	then
-		return 0
-	else
-		echo -e "${RED}Invalid username. Only letters, numbers, and underscores are allowed.${RESET}"
-		return 1
-	fi
+	[[ "$@" =~ ^[a-zA-Z0-9_]+$ ]]
+	return $?
 }
 
-three_attempts(){
-	attempts=3
-	u1="$@"
+handle_three_attempts(){
+	local attempts=3
+	local username="$@"
 	while (( attempts > 0 ))
 	do
-	    read -s -p "Enter pwd: " pwd
-		echo
-	    hash_pwd=$(hash "$pwd")
-	    if auth_user "${u1}${tab}${hash_pwd}"
+		local pwd
+	    read -r -s -p "Enter pwd: " pwd
+		echo ""
+	    local hash_pwd=$(hash "$pwd")
+	    if auth_user "${username}${tab}${hash_pwd}"
 		then
-			echo -e "${GREEN}User ${u1} Logged in successfully ${endl}${RESET}"
+			echo -e "${GREEN}User ${username} Logged in successfully ${endl}${RESET}"
 			break
 		fi
 		(( attempts-- ))
 		if (( attempts == 0 ))
 		then
 			echo -e "${RED}Ok clearly you don't know the password... Locking account for $lock_time seconds${RESET}"
-			echo "${u1},$(date +%s)" >> failed_logins.csv
+			echo "${username},$(date +%s)" >> failed_logins.csv
 			return 0
 		else
 			echo -e "${RED}wrong password, try again!${RESET}"
@@ -109,18 +97,20 @@ three_attempts(){
 
 init_files
 
+echo -e "${endl}${GREY}--User1 Login--${endl}${RESET}"
 while true
 do
-    read -p "Enter username: " u1
+    read -r -p "Enter username: " u1
 	if ! is_valid_username "$u1"
 	then
+		echo -e "${RED}Invalid username. Only letters, numbers, and underscores are allowed.${RESET}"
 		continue
 	fi
 
 	if username_exists "$u1"
 	then
-		recent_login "$u1"  && continue
-		three_attempts "$u1" && continue
+		handle_locked_users "$u1"  && continue
+		handle_three_attempts "$u1" && continue
 		break
 	else
 	    create_user "$u1"
@@ -128,18 +118,26 @@ do
 	fi
 done
 
+echo -e "${GREY}--User2 Login--${endl}${RESET}"
 while true
 do
-    read -p "Enter username: " u2
+    read -r -p "Enter username: " u2
+	if [[ "$u2" == "$u1" ]]
+	then
+		echo -e "${RED}That's user1! Login as a different user bro${RESET}"
+		continue
+	fi
+
 	if ! is_valid_username "$u2"
 	then
+		echo -e "${RED}Invalid username. Only letters, numbers, and underscores are allowed.${RESET}"
 		continue
 	fi
 
 	if username_exists "$u2"
 	then
-		recent_login "$u2" && continue
-		three_attempts "$u2" && continue
+		handle_locked_users "$u2" && continue
+		handle_three_attempts "$u2" && continue
 		break
 	else
 	    create_user "$u2"
@@ -147,5 +145,6 @@ do
 	fi
 done
 
-python game.py "${u1}" "${u2}"
-echo "hello welcome to games"
+echo -e "${GREY}--LOGIN SUCCESSFUL--${endl}"
+echo -e "Starting game...${RESET}"
+#python game.py "${u1}" "${u2}"

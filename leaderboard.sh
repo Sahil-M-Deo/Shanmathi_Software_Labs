@@ -15,7 +15,7 @@ elif [[ "$metric" == "ratio" ]]; then
 fi
 
 echo "Username,Wins,Losses,Win/Loss Ratio" > temp.csv
-filename="stats_${gameName}.csv"
+filename=".stats_${gameName}.csv"
 touch filename
 sort -t ',' -k${fieldnum} -n -r ${filename} >> temp.csv
 cat temp.csv | column -t -s ',' 

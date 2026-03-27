@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
 import classGame as cg
-
+import time
 pygame.init()
 pygame.font.init()
 font = pygame.font.Font(None, 50) #(font style,size)
@@ -13,8 +13,9 @@ tickrate=60
 bg_color="black"
 #
 
-#turn_time is the time given to each player to make a move in blitz mode
-turn_time=5
+#time related variables
+turn_time=10
+last_time=time.time()
 #
 
 screen = pygame.display.set_mode((width,height))
@@ -165,7 +166,7 @@ def hover(row,col,turn):
     pygame.draw.circle(surface,hover_rbgOPACITY,(r,r),r)
     screen.blit(surface,(x_pos-r,y_pos-r))
 
-time=turn_time
+rem_time=turn_time
 ticks=0
 running=True
 
@@ -183,8 +184,10 @@ def move(row,col,turn):
     
     game.board[row][col]=turn
     
-    global time
-    time=turn_time
+    global last_time
+    last_time=time.time()
+    global rem_time
+    rem_time=turn_time
     
     if turn:
         red.append((centre_x,centre_y))
@@ -197,15 +200,72 @@ def move(row,col,turn):
 #
 
 def display_timer(x,y,player,turn):
-    timer_box = pygame.Rect(x,y,300,100)
-    pygame.draw.rect(screen, "yellow", timer_box)
-    if player==turn:
-        display=str(time)
-    else:
-        display=str(turn_time)
+    w=90
+    h=500
+    
+    is_active=(player==turn)
 
-    display_time = font.render(display, True, (0,0,0))
-    screen.blit(display_time, display_time.get_rect(center=timer_box.center))
+    scale=1.06 if is_active else 1.0
+    w_scaled=int(w*scale)
+    h_scaled=int(h*scale)
+
+    rect=pygame.Rect(
+        x-(w_scaled-w)//2,
+        y-(h_scaled-h)//2,
+        w_scaled,
+        h_scaled
+    )
+
+    if is_active:
+        bg=(60,60,60)
+        border_color=(25,25,25)
+        border_thickness=5
+    else:
+        bg=(30,30,30)
+        border_color=(15,15,15)
+        border_thickness=2
+    pygame.draw.rect(screen,bg,rect,border_radius=20)
+    pygame.draw.rect(screen,border_color,rect,border_thickness,border_radius=20)
+
+    if player==turn:
+        t=rem_time
+    else:
+        t=turn_time
+
+    ratio_raw=t/turn_time
+    ratio=ratio_raw*ratio_raw*(3-2*ratio_raw)
+    if ratio<0.5:
+        r=255
+        g=int(880*ratio*ratio) 
+    else:
+        r=510*(1-ratio)
+        g=220
+    color=(r,g,0)
+    
+    padding = 6
+    inner_w = rect.width - 2 * padding
+    inner_h = rect.height - 2 * padding
+
+    fill_h = int(inner_h * ratio)
+
+    # surface for inner rounded shape
+    fill_surf = pygame.Surface((inner_w, inner_h))
+
+    # draw full rounded rect (defines the shape)
+    pygame.draw.rect(fill_surf, color, (0, 0, inner_w, inner_h), border_radius = 15)
+    # clip from bottom
+    if fill_h > 0:
+        clipped = fill_surf.subsurface((0, inner_h - fill_h, inner_w, fill_h))
+        screen.blit(clipped, (rect.x + padding, rect.y + padding + inner_h - fill_h))
+
+    if not is_active:
+        overlay=pygame.Surface((rect.width,rect.height),pygame.SRCALPHA)
+        overlay.fill((0,0,0,120))
+        screen.blit(overlay,(rect.x,rect.y))
+
+    txt=f"{t:.1f}"
+    text=font.render(txt,True,"white")
+    screen.blit(text,text.get_rect(center=(rect.centerx,rect.bottom+25)))
 
 game_over = False
 finalDisplay=None
@@ -252,7 +312,6 @@ while running:
                     if col_filled[col]<game.boardHEIGHT:
                         row=game.boardHEIGHT-1-col_filled[col]
                         move(row,col,game.turn)
-                        ticks=0
                        
    
     # Board:
@@ -267,10 +326,16 @@ while running:
         pygame.draw.circle(screen,"red",(a,b),r,0)
 
     if game_mode=="blitz":
-        display_timer(0,0,True,game.turn)
-        display_timer(980,0,False,game.turn)
-        
-	# Hover effect:
+        left_x = x_start - 120
+        right_x = x_end + 30
+        top_y = y_start + 20
+        if filled:
+            display_timer(left_x, top_y, True, game.turn)
+            display_timer(right_x, top_y, False, game.turn)
+        else:
+            display_timer(left_x, top_y, not game.turn, game.turn)
+            display_timer(right_x, top_y, not game.turn, game.turn)
+    # Hover effect:
     if not game_over:
 	    if(0<=col<game.boardWIDTH):
 	        row=game.boardHEIGHT-1-col_filled[col]
@@ -290,14 +355,11 @@ while running:
             end(-1)
 
         if game_mode=="blitz":
-            ticks+=1
-            if ticks==tickrate:
-                time-=1
-                ticks=0
-            if time==0:
+            rem_time = turn_time-(time.time()-last_time)
+            if rem_time<=0:
+                rem_time=0
                 end(not game.turn)
-
-                game_over=True
+            
 
     pygame.display.flip()
     clock.tick(tickrate)

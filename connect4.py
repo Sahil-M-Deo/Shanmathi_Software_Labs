@@ -2,15 +2,25 @@ import pygame
 import numpy as np
 import classGame as cg
 import time
+
+#pygame setup
 pygame.init()
 pygame.font.init()
 font = pygame.font.Font(None, 50) #(font style,size)
+#
+
+#COLORS
+YELLOW=(255,220,0)
+RED=(255,0,0)
+BLACK=(0,0,0)
+#
 
 #window variables
-width = 1280 
-height = 720
+info=pygame.display.Info()
+width=info.current_w
+height=info.current_h
 tickrate=60
-bg_color="black"
+bg_color=BLACK
 #
 
 #time related variables
@@ -23,22 +33,17 @@ pygame.display.set_caption("Connect 4")
 clock = pygame.time.Clock()
 game_mode = None
 
-#positions of reds and yellows
-red = [] 
-yellow = []
-#
-
 #initialising game board
 game = cg.Game()
 game.boardHEIGHT=6
 game.boardWIDTH=7
 game.board = np.full((game.boardHEIGHT,game.boardWIDTH),None)
-cell_size=90
+cell_size=100
 x_start=round(width/2-(game.boardWIDTH/2)*cell_size)
 x_end=round(width/2+(game.boardWIDTH/2)*cell_size)
-y_start = 100
-y_end = y_start+(game.boardHEIGHT*cell_size)
-r=round(cell_size/2-10) #radius of circle
+y_start=round(height/2-(game.boardHEIGHT/2)*cell_size)
+y_end=y_start+(game.boardHEIGHT*cell_size)
+r=round(cell_size/2-5) #radius of circle
 #
 
 username1="player1"
@@ -137,17 +142,22 @@ while menu:
 
 def draw_board():
     board_color="blue"
-    hole_color="black"
-
+    hole_color=None
     # draw board rectangle
     pygame.draw.rect(screen,board_color,(x_start,y_start,7*cell_size,6*cell_size))
 
     # draw holes
     for row in range(6):
         for col in range(7):
+            if game.board[row][col] == 0:
+                hole_color=YELLOW
+            elif game.board[row][col] == 1:
+                hole_color=RED
+            else:
+                hole_color="black"
             cx=round(x_start+col*cell_size+cell_size/2)
             cy=round(y_start+row*cell_size+cell_size/2)
-            pygame.draw.circle(screen,hole_color,(cx,cy),round(cell_size/2)-5)
+            pygame.draw.circle(screen,hole_color,(cx,cy),radius=r)
 
 
 def hover(row,col,turn):
@@ -157,7 +167,7 @@ def hover(row,col,turn):
         hover_color="red"
         hover_rbgOPACITY=(255,0,0,OPACITY)
     else:
-        hover_color="yellow"
+        hover_color=YELLOW
         hover_rbgOPACITY=(255,255,0,OPACITY)
     x_pos=round(x_start+col*cell_size+cell_size/2)
     y_pos=round(y_start+row*cell_size+cell_size/2)
@@ -188,11 +198,6 @@ def move(row,col,turn):
     last_time=time.time()
     global rem_time
     rem_time=turn_time
-    
-    if turn:
-        red.append((centre_x,centre_y))
-    else:
-        yellow.append((centre_x,centre_y))
         
     if game.checkWin(turn,row,col):
         end(turn)
@@ -200,14 +205,14 @@ def move(row,col,turn):
 #
 
 def display_timer(x,y,player,turn):
-    w=90
-    h=500
+    w=cell_size
+    h=game.boardHEIGHT*cell_size
     
     is_active=(player==turn)
 
     scale=1.06 if is_active else 1.0
-    w_scaled=int(w*scale)
-    h_scaled=int(h*scale)
+    w_scaled=round(w*scale)
+    h_scaled=round(h*scale)
 
     rect=pygame.Rect(
         x-(w_scaled-w)//2,
@@ -246,7 +251,7 @@ def display_timer(x,y,player,turn):
     inner_w = rect.width - 2 * padding
     inner_h = rect.height - 2 * padding
 
-    fill_h = int(inner_h * ratio)
+    fill_h = round(inner_h * ratio)
 
     # surface for inner rounded shape
     fill_surf = pygame.Surface((inner_w, inner_h))
@@ -317,17 +322,9 @@ while running:
     # Board:
     draw_board()
 
-    # adding yellow circles
-    for a,b in yellow:
-        pygame.draw.circle(screen,"yellow",(a,b),r,0)
-
-    # adding red circles
-    for a,b in red:
-        pygame.draw.circle(screen,"red",(a,b),r,0)
-
     if game_mode=="blitz":
-        left_x = x_start - 120
-        right_x = x_end + 30
+        left_x = x_start - 150
+        right_x = x_end + 60
         top_y = y_start + 20
         if filled:
             display_timer(left_x, top_y, True, game.turn)

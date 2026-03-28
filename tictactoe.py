@@ -172,8 +172,8 @@ while classic_game:
 
 
 
-
-time=10
+turn_time=5
+time=turn_time
 ticks=0
 running=True
 
@@ -186,7 +186,7 @@ def move(row,col,turn):
     global time
     filled+=1
     game.board[row][col]=turn
-    time=10
+    time=turn_time
     if turn:
         circ.append((centre_x,centre_y))
         hover_color="dark green"
@@ -206,7 +206,7 @@ def display_timer(x,y,player,turn):
     if player==turn:
         display=str(time)
     else:
-        display="10"
+        display=str(turn_time)
 
     display_time = font.render(display, True, (0,0,0))
     screen.blit(display_time, display_time.get_rect(center=timer_box.center))
@@ -249,6 +249,7 @@ while running:
                 if row<10 and col<10 and row>=0 and col>=0:
                     if game.board[row][col]==None:
                         move(row,col,game.turn)
+                        ticks=0
                         
 
     # Hover effect:

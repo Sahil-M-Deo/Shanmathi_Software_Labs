@@ -6,19 +6,20 @@ echo "hallo leaderboard.sh"
 metric="$1"
 gameName="$2"
 
-if [[ "$metric" == "wins" ]]; then
-	fieldnum=2
-elif [[ "$metric" == "losses" ]]; then
-	fieldnum=3
-elif [[ "$metric" == "ratio" ]]; then
-	fieldnum=4
-fi
-
+echo "Sorted by ${metric} for ${gameName} metric"
 echo "Username,Wins,Losses,Win/Loss Ratio" > temp.csv
 filename=".stats_${gameName}.csv"
-touch filename
-sort -t ',' -k${fieldnum} -n -r ${filename} >> temp.csv
-cat temp.csv | column -t -s ',' 
+touch ${filename} #create filename
+
+if [[ "$metric" == "wins" ]]; then
+	sort -n -t ',' -k2,2r -k3,3 ${filename} >> temp.csv
+elif [[ "$metric" == "losses" ]]; then
+	sort -n -t ',' -k3,3r -k2,2 ${filename} >> temp.csv
+elif [[ "$metric" == "ratio" ]]; then
+	sed 's/,inf$/,10000000000000/g' ${filename} | sort -n -t ',' -k4,4r -k2,2r | sed 's/,10000000000000$/,inf/g' >> temp.csv
+fi
+
+column -t -s ',' temp.csv
 rm temp.csv
 
 

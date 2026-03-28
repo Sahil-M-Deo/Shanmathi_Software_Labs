@@ -3,7 +3,7 @@ import numpy as np
 import classGame as cg
 import time
 def play(screen,clock,font,username1,username2):
-    
+    play_again=False #to check if user wants to play again after a game ends
     name_of_winner=None
     name_of_loser=None
     #COLORS
@@ -271,6 +271,8 @@ def play(screen,clock,font,username1,username2):
         nonlocal finalDisplay
         nonlocal game_over
         nonlocal finalColor
+        nonlocal name_of_winner
+        nonlocal name_of_loser
         game_over=True
         if winner == 1:
             name_of_winner=username1
@@ -310,6 +312,15 @@ def play(screen,clock,font,username1,username2):
                         if col_filled[col]<game.boardHEIGHT:
                             row=game.boardHEIGHT-1-col_filled[col]
                             move(row,col,game.turn)
+            else:
+                if event.type==pygame.MOUSEBUTTONUP:
+                    pos=event.pos
+
+                    if play_again_btn.collidepoint(pos):
+                        play_again=True
+                        running=False #go back to game.py, (stats will be updated and shown there)
+                    if menu_btn.collidepoint(pos):
+                        running=False      # go back to game.py, (stats will be updated and shown there)
                            
        
         # Board:
@@ -325,18 +336,51 @@ def play(screen,clock,font,username1,username2):
             else:
                 display_timer(left_x, top_y, not game.turn, game.turn)
                 display_timer(right_x, top_y, not game.turn, game.turn)
-        # Hover effect:
+        
         if not game_over:
             if(0<=col<game.boardWIDTH):
                 row=game.boardHEIGHT-1-col_filled[col]
                 hover(row,col,game.turn)
         else:
+            # dark overlay
             fade=pygame.Surface(screen.get_size(),pygame.SRCALPHA)
-            fade.fill((0,0,0,180))  # (R,G,B,alpha)
+            fade.fill((0,0,0,180))
             screen.blit(fade,(0,0))
-            font2 = pygame.font.Font(None, 100)
-            display_winner = font2.render(finalDisplay, True, finalColor)
-            screen.blit(display_winner, display_winner.get_rect(center=(width/2,height/2)))
+
+            # popup box
+            box_w=500
+            box_h=300
+            box_rect=pygame.Rect(0,0,box_w,box_h)
+            box_rect.center=(width//2,height//2)
+
+            pygame.draw.rect(screen,(40,40,40),box_rect,border_radius=20)
+            pygame.draw.rect(screen,(200,200,200),box_rect,3,border_radius=20)
+
+            # winner text
+            font_big=pygame.font.Font(None,80)
+            text=font_big.render(finalDisplay,True,finalColor)
+            screen.blit(text,text.get_rect(center=(box_rect.centerx,box_rect.top+80)))
+
+            # buttons
+            btn_w=180
+            btn_h=60
+
+            play_again_btn=pygame.Rect(0,0,btn_w,btn_h)
+            menu_btn=pygame.Rect(0,0,btn_w,btn_h)
+
+            play_again_btn.center=(box_rect.centerx-110,box_rect.bottom-80)
+            menu_btn.center=(box_rect.centerx+110,box_rect.bottom-80)
+
+            pygame.draw.rect(screen,(70,130,180),play_again_btn,border_radius=10)
+            pygame.draw.rect(screen,(180,70,70),menu_btn,border_radius=10)
+
+            font_small=pygame.font.Font(None,40)
+
+            txt1=font_small.render("Play Again",True,"white")
+            txt2=font_small.render("Main Menu",True,"white")
+
+            screen.blit(txt1,txt1.get_rect(center=play_again_btn.center))
+            screen.blit(txt2,txt2.get_rect(center=menu_btn.center))
             
         if not game_over:
             # dealing with a tie
@@ -353,4 +397,4 @@ def play(screen,clock,font,username1,username2):
 
         pygame.display.flip()
         clock.tick(tickrate)
-    return name_of_winner,name_of_loser
+    return name_of_winner,name_of_loser,play_again

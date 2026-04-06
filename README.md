@@ -106,4 +106,7 @@ Note: It is logical to conclude that n>u so this optimisation is very much justi
 
 - Adding time controls to make things more exciting
 - Performance improvement (Time complexity-wise)
+- Restricted usernames and passwords to a certain character set by rigorously testing and finding ways to crack the auth procedure
+- Used pygame subsurface for a smooth timer animation
+- Generalised design elements like buttons
 - (More to be added over time)

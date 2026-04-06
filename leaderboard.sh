@@ -1,22 +1,41 @@
 #formatted table to the terminal showing, per game, per user: number of wins, number of 
 #losses, and Win/Loss ratio, sorted by one of these metrics.
 #Usage: bash leaderboard.sh metric gameName
-echo "hallo leaderboard.sh"
+clear
+preprocess(){
+	sed 's/,inf$/,1000000.000/' $@
+}
+
+postprocess(){
+	awk '
+	BEGIN{FS=","; OFS=",";}
+	{
+		if($4=="1000000.000")
+		{
+			$4="inf";
+			print $0;
+		}
+		else
+			printf "%s,%s,%s,%.3f\n",$1,$2,$3,$4;
+	}
+	'
+}
 
 metric="$1"
 gameName="$2"
 
-echo "Sorted by ${metric} for ${gameName} metric"
+echo "Sorted by ${metric} for ${gameName}:"
+echo
 echo "Username,Wins,Losses,Win/Loss Ratio" > temp.csv
 filename=".stats_${gameName}.csv"
 touch ${filename} #create filename
 
 if [[ "$metric" == "wins" ]]; then
-	sort -n -t ',' -k2,2r -k3,3 ${filename} >> temp.csv
+	preprocess ${filename} | sort -t ',' -k2,2nr -k3,3n | postprocess >> temp.csv
 elif [[ "$metric" == "losses" ]]; then
-	sort -n -t ',' -k3,3r -k2,2 ${filename} >> temp.csv
+	preprocess ${filename} | sort -t ',' -k3,3nr -k2,2n | postprocess >> temp.csv
 elif [[ "$metric" == "ratio" ]]; then
-	sed 's/,inf$/,10000000000000/g' ${filename} | sort -n -t ',' -k4,4r -k2,2r | sed 's/,10000000000000$/,inf/g' >> temp.csv
+	preprocess ${filename} | sort -t ',' -k4,4nr -k2,2nr | postprocess >> temp.csv
 fi
 
 column -t -s ',' temp.csv

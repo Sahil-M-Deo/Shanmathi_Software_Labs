@@ -3,9 +3,11 @@ import numpy as np
 import classGame as cg
 import time
 def play(screen,clock,font,username1,username2):
+    
     play_again=False #to check if user wants to play again after a game ends
     name_of_winner=None
     name_of_loser=None
+    
     #COLORS
     YELLOW=(255,220,0)
     RED=(255,0,0)
@@ -29,7 +31,7 @@ def play(screen,clock,font,username1,username2):
 
     #initialising game board
     game = cg.Game()
-    game.boardHEIGHT=6
+    game.boardHEIGHT=7
     game.boardWIDTH=7
     game.board = np.full((game.boardHEIGHT,game.boardWIDTH),None)
     cell_size=100
@@ -58,7 +60,7 @@ def play(screen,clock,font,username1,username2):
         left=count(board[current_row,max(0,current_column-streak):current_column][::-1])
         right=count(board[current_row,current_column+1:min(self.boardWIDTH,current_column+streak+1)])
 
-        # \ diagonal
+        # diagonal
         diag=board.diagonal(offset=current_column-current_row)
         idx=min(current_row,current_column)
 
@@ -75,12 +77,8 @@ def play(screen,clock,font,username1,username2):
         d2_left=count(diag[max(0,idx-streak):idx][::-1])
         d2_right=count(diag[idx+1:idx+1+streak])
 
-        if (up+down+1>=streak or
-            left+right+1>=streak or
-            d1_left+d1_right+1>=streak or
-            d2_left+d2_right+1>=streak):
+        if (up+down+1>=streak or left+right+1>=streak or d1_left+d1_right+1>=streak or d2_left+d2_right+1>=streak):
             return True
-
         return False
 
     cg.Game.checkWin = check #implementation done
@@ -136,11 +134,11 @@ def play(screen,clock,font,username1,username2):
         board_color="blue"
         hole_color=None
         # draw board rectangle
-        pygame.draw.rect(screen,board_color,(x_start,y_start,7*cell_size,6*cell_size))
+        pygame.draw.rect(screen,board_color,(x_start,y_start,game.boardWIDTH*cell_size,game.boardHEIGHT*cell_size))
 
         # draw holes
-        for row in range(6):
-            for col in range(7):
+        for row in range(game.boardHEIGHT):
+            for col in range(game.boardWIDTH):
                 if game.board[row][col] == 0:
                     hole_color=YELLOW
                 elif game.board[row][col] == 1:
@@ -315,7 +313,6 @@ def play(screen,clock,font,username1,username2):
             else:
                 if event.type==pygame.MOUSEBUTTONUP:
                     pos=event.pos
-
                     if play_again_btn.collidepoint(pos):
                         play_again=True
                         running=False #go back to game.py, (stats will be updated and shown there)
@@ -327,9 +324,9 @@ def play(screen,clock,font,username1,username2):
         draw_board()
 
         if game_mode=="blitz":
-            left_x = x_start - 150
-            right_x = x_end + 60
-            top_y = y_start + 20
+            left_x = round(x_start-1.5*cell_size)
+            right_x = round(x_end+0.6*cell_size)
+            top_y = round(y_start+0.2*cell_size)
             if filled:
                 display_timer(left_x, top_y, True, game.turn)
                 display_timer(right_x, top_y, False, game.turn)
@@ -341,6 +338,16 @@ def play(screen,clock,font,username1,username2):
             if(0<=col<game.boardWIDTH):
                 row=game.boardHEIGHT-1-col_filled[col]
                 hover(row,col,game.turn)
+                
+            if filled == game.boardHEIGHT*game.boardWIDTH:
+                game_over=True
+                end(-1)
+
+            if game_mode=="blitz":
+                rem_time = turn_time-(time.time()-last_time)
+                if rem_time<=0:
+                    rem_time=0
+                    end(not game.turn)
         else:
             # dark overlay
             fade=pygame.Surface(screen.get_size(),pygame.SRCALPHA)
@@ -377,23 +384,11 @@ def play(screen,clock,font,username1,username2):
             font_small=pygame.font.Font(None,40)
 
             txt1=font_small.render("Play Again",True,"white")
-            txt2=font_small.render("Main Menu",True,"white")
+            txt2=font_small.render("Leaderboard",True,"white")
 
             screen.blit(txt1,txt1.get_rect(center=play_again_btn.center))
             screen.blit(txt2,txt2.get_rect(center=menu_btn.center))
-            
-        if not game_over:
-            # dealing with a tie
-            if filled == game.boardHEIGHT*game.boardWIDTH:
-                game_over=True
-                end(-1)
-
-            if game_mode=="blitz":
-                rem_time = turn_time-(time.time()-last_time)
-                if rem_time<=0:
-                    rem_time=0
-                    end(not game.turn)
-                
+                           
 
         pygame.display.flip()
         clock.tick(tickrate)

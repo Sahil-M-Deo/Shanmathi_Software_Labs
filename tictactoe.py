@@ -4,28 +4,23 @@ import classGame as cg
 import time
 
 def play(screen,clock,font,username1,username2):
-    pygame.init()
-    pygame.font.init()
-    font = pygame.font.Font(None, 50) #(font style,size)
-
+    
     #COLORS
     YELLOW=(255,220,0)
     RED=(255,0,0)
     BLACK=(0,0,0)
     #
 
+    pygame.display.set_caption("TicTacToe")
+    
     #window variables
     info=pygame.display.Info()
     width=info.current_w
     height=info.current_h
-    print(width,height)
     tickrate=60
     bg_color=BLACK
     #
 
-    screen = pygame.display.set_mode((width,height))
-    pygame.display.set_caption("TicTacToe")
-    clock = pygame.time.Clock()
     game_mode = None
 
     #positions of circles and crosses
@@ -52,9 +47,6 @@ def play(screen,clock,font,username1,username2):
     r = round(cell_size*7/20) #radius of circle/cross
     #
 
-    username1="player1"
-    username2="player2"
-
 
     def check(self, turn):
         streak=5
@@ -77,25 +69,40 @@ def play(screen,clock,font,username1,username2):
     #username1 is turn=True represented by Circle
     #username2 is turn=False represented by Cross
 
+    def draw_menu_button(rect,text,mouse_pos,mouse_pressed):
+        offset=0
+        if rect.collidepoint(mouse_pos):
+            if mouse_pressed:
+                fill_color=(60,60,60)        # pressed
+                offset=2
+            else:
+                fill_color=(100,100,120)     # hover
+        else:
+            fill_color=(70,70,70)            # idle
+
+        border_color=(150,150,150)
+
+        r=rect.move(0,offset) #button pressed down effect 
+
+        pygame.draw.rect(screen,fill_color,r,border_radius=15)
+        pygame.draw.rect(screen,border_color,r,3,border_radius=15)
+
+        txt=font.render(text,True,"white")
+        screen.blit(txt,txt.get_rect(center=r.center))
+
     menu = True
     while menu:
         screen.fill(bg_color)
-        #classic tictactoe button
-        classic = pygame.Rect(0,0,300,100) #topleft_coordinates,width,height
-        classic.center= (width/2,100)
-        pygame.draw.rect(screen,"purple",classic)
-        
-        Ctext = font.render("Classic", True, "pink") #true kya karta hai?
-        screen.blit(Ctext, Ctext.get_rect(center=classic.center)) #Text Surface, rectangle to be drawn at
+        classic=pygame.Rect(0,0,300,100)
+        classic.center=(round(width/2),round(height/3))
 
-        #blitz tictactoe button
-        blitz = pygame.Rect(0,0,300,100)
-        blitz.center= (width/2,300)
-        pygame.draw.rect(screen,"purple",blitz)
-        
-        Btext = font.render("Blitz", True, "pink")
-        screen.blit(Btext, Btext.get_rect(center=blitz.center))
+        blitz=pygame.Rect(0,0,300,100)
+        blitz.center=(round(width/2),round(2*height/3))
 
+        mouse_pos=pygame.mouse.get_pos()
+        mouse_pressed=pygame.mouse.get_pressed() #(left, middle, right) mouse button states - for us [0] is relevant
+        draw_menu_button(classic,"Classic", mouse_pos, mouse_pressed[0]) #classic button
+        draw_menu_button(blitz,"Blitz", mouse_pos, mouse_pressed[0]) #blitz button
 
         for event in pygame.event.get():
 
@@ -120,7 +127,6 @@ def play(screen,clock,font,username1,username2):
         clock.tick(tickrate)
 
 
-
     def draw_board():
         for i in range(x_start, x_end+cell_size, cell_size):
             pygame.draw.line(screen, (200,40,40), (i,y_start), (i,y_end), 5) #(screen,color,start,end,width)
@@ -142,14 +148,14 @@ def play(screen,clock,font,username1,username2):
     def move(row,col,turn):
         centre_x = round(x_start+cell_size/2+row*cell_size) 
         centre_y = round(y_start+cell_size/2+col*cell_size)
-        global hover_color
-        global filled
+
+        nonlocal filled
         filled+=1
         game.board[row][col]=turn
         
-        global last_time
+        nonlocal last_time
         last_time=time.time()
-        global rem_time
+        nonlocal rem_time
         rem_time=turn_time
         
         if turn:
@@ -173,12 +179,7 @@ def play(screen,clock,font,username1,username2):
         w_scaled=round(w*scale)
         h_scaled=round(h*scale)
         
-        rect=pygame.Rect(
-            x-(w_scaled-w)//2,
-            y-(h_scaled-h)//2,
-            w_scaled,
-            h_scaled
-        )
+        rect=pygame.Rect(round(x-(w_scaled-w)/2),round(y-(h_scaled-h)/2),w_scaled,h_scaled)
 
         if is_active:
             bg=(60,60,60)
@@ -206,9 +207,9 @@ def play(screen,clock,font,username1,username2):
             g=220
         color=(r,g,0)
         
-        padding = 6
-        inner_w = rect.width - 2 * padding
-        inner_h = rect.height - 2 * padding
+        padding=6
+        inner_w = rect.width-2*padding
+        inner_h = rect.height-2*padding
 
         fill_h = round(inner_h * ratio)
 
@@ -232,28 +233,36 @@ def play(screen,clock,font,username1,username2):
         screen.blit(text,text.get_rect(center=(rect.centerx,rect.bottom+25)))
 
     game_over = False
-
+    finalDisplay=""
+    finalColor="white"
+    name_of_winner=None
+    name_of_loser=None
     def end(winner):
-        global finalDisplay
-        global game_over
-        global finalColor
+        nonlocal finalDisplay
+        nonlocal game_over
+        nonlocal finalColor
+        nonlocal name_of_winner
+        nonlocal name_of_loser
         game_over=True
         if winner == 1:
             name_of_winner=username1
-            finalDisplay="RED WINS!"
+            name_of_loser=username2
+            finalDisplay=username1+" WINS!"
             finalColor="green"
         elif winner == 0:
             name_of_winner=username2
-            finalDisplay="YELLOW WINS!"
+            name_of_loser=username1
+            finalDisplay=username2+" WINS!"
             finalColor="green"
         else:
             name_of_winner="TIE"
+            name_of_loser="TIE"
             finalDisplay="IT'S A TIE!"
             finalColor="grey"
 
     filled=0 #number of filled cells
 
-
+    play_again=False
     #main game loop:
     while running:
         screen.fill(bg_color)
@@ -272,16 +281,23 @@ def play(screen,clock,font,username1,username2):
             
             if not game_over:
                 if event.type == pygame.MOUSEBUTTONUP:
-                    if row<10 and col<10 and row>=0 and col>=0:
-                        if game.board[row][col]==None:
-                            move(row,col,game.turn)
-                            ticks=0
-                            
+                    if col<game.boardWIDTH and col>=0 and row<game.boardHEIGHT and row>=0 and game.board[row][col]==None:
+                        move(row,col,game.turn)
+            else:
+                if event.type==pygame.MOUSEBUTTONUP:
+                    pos=event.pos
+                    if play_again_btn.collidepoint(pos):
+                        play_again=True
+                        running=False #go back to game.py, (stats will be updated and shown there)
+                    if menu_btn.collidepoint(pos):
+                        running=False      # go back to game.py, (stats will be updated and shown there)
+                                       
 
         # Hover effect:
-        hover(row,col)
+        if row<game.boardHEIGHT and col<game.boardWIDTH and row>=0 and col>=0 and game.board[row][col]==None:
+            hover(row,col)
        
-        # 10x10 Grid:
+        #Grid:
         draw_board()
 
         # adding crosses
@@ -294,8 +310,8 @@ def play(screen,clock,font,username1,username2):
             pygame.draw.circle(screen, "white", (a,b), r, 6)
 
         if game_mode=="blitz":
-            left_x = x_start-1.5*cell_size
-            right_x = x_end+0.6*cell_size
+            left_x = round(x_start-1.5*cell_size)
+            right_x = round(x_end+0.6*cell_size)
             top_y = y_start
             if filled:
                 display_timer(left_x, top_y, True, game.turn)
@@ -318,15 +334,46 @@ def play(screen,clock,font,username1,username2):
                     rem_time=0
                     end(not game.turn)
         else:
+            # dark overlay
             fade=pygame.Surface(screen.get_size(),pygame.SRCALPHA)
-            fade.fill((0,0,0,180))  # (R,G,B,alpha)
+            fade.fill((0,0,0,180))
             screen.blit(fade,(0,0))
-            font2 = pygame.font.Font(None, 100)
-            display_winner = font2.render(finalDisplay, True, finalColor)
-            screen.blit(display_winner, display_winner.get_rect(center=(width/2,height/2)))
+
+            # popup box
+            box_w=500
+            box_h=300
+            box_rect=pygame.Rect(0,0,box_w,box_h)
+            box_rect.center=(width//2,height//2)
+
+            pygame.draw.rect(screen,(40,40,40),box_rect,border_radius=20)
+            pygame.draw.rect(screen,(200,200,200),box_rect,3,border_radius=20)
+
+            # winner text
+            font_big=pygame.font.Font(None,80)
+            text=font_big.render(finalDisplay,True,finalColor)
+            screen.blit(text,text.get_rect(center=(box_rect.centerx,box_rect.top+80)))
+
+            # buttons
+            btn_w=180
+            btn_h=60
+
+            play_again_btn=pygame.Rect(0,0,btn_w,btn_h)
+            menu_btn=pygame.Rect(0,0,btn_w,btn_h)
+
+            play_again_btn.center=(box_rect.centerx-110,box_rect.bottom-80)
+            menu_btn.center=(box_rect.centerx+110,box_rect.bottom-80)
+
+            pygame.draw.rect(screen,(70,130,180),play_again_btn,border_radius=10)
+            pygame.draw.rect(screen,(180,70,70),menu_btn,border_radius=10)
+
+            font_small=pygame.font.Font(None,40)
+
+            txt1=font_small.render("Play Again",True,"white")
+            txt2=font_small.render("Leaderboard",True,"white")
+
+            screen.blit(txt1,txt1.get_rect(center=play_again_btn.center))
+            screen.blit(txt2,txt2.get_rect(center=menu_btn.center))
 
         pygame.display.flip()
         clock.tick(tickrate)
-
-                
-    pygame.quit()
+    return name_of_winner,name_of_loser,play_again

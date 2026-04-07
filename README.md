@@ -35,7 +35,7 @@ Includes a **JKLM-style word game** as an extension.
 ###  Games
 - Tic-Tac-Toe (10*10)
 - Othello
-- Connect Four
+- Connect Four (7*7)
 - JKLM-style word game (extension)
 - Not decided which more (if any)
 ---

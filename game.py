@@ -135,46 +135,6 @@ def update_history():
     with open("history.csv", "a") as f:
         f.write(winner + "," + loser + "," + date + "," + gameName + "\n")
 
-#rect is pygame.Rect object (x,y,width,height)
-#text is the text to be displayed on the button
-#is_selected is whether the button is highlighted or not
-def draw_leaderboard_button(rect,text,is_selected):
-    if is_selected:
-        fill_color=(100,100,120)      # same hover-style brightness
-        border_color=(220,220,220)    # brighter version of border
-    else:
-        fill_color=(70,70,70)
-        border_color=(150,150,150)
-
-    pygame.draw.rect(screen,fill_color,rect,border_radius=15)
-    pygame.draw.rect(screen,border_color,rect,3,border_radius=15)
-
-    txt=font.render(text,True,"white")
-    screen.blit(txt,txt.get_rect(center=rect.center))
-
-#rect is pygame.Rect object (x,y,width,height)
-#text is the text to be displayed on the button
-def draw_menu_button(rect,text,mouse_pos,mouse_pressed):
-    offset=0
-    if rect.collidepoint(mouse_pos):
-        if mouse_pressed:
-            fill_color=(60,60,60)        # pressed
-            offset=2
-        else:
-            fill_color=(100,100,120)     # hover
-    else:
-        fill_color=(70,70,70)            # idle
-
-    border_color=(150,150,150)
-
-    r=rect.move(0,offset) #button pressed down effect 
-
-    pygame.draw.rect(screen,fill_color,r,border_radius=15)
-    pygame.draw.rect(screen,border_color,r,3,border_radius=15)
-
-    txt=font.render(text,True,"white")
-    screen.blit(txt,txt.get_rect(center=r.center))
-
 sys.path.insert(0,"./games")
 import tictactoe as ttt
 import connect4 as cf	
@@ -190,40 +150,60 @@ def update():
     update_game_frequencies()
     update_total_wins()
     update_history()
+    
+from design_elements import Button
 def show_leaderboard():
-    pygame.display.set_caption("Leaderboard")
+    pygame.display.quit()
+
+    os.environ['SDL_VIDEO_CENTERED']='0'
+    os.environ['SDL_VIDEO_WINDOW_POS']="0,"+str(round(height/6))
+
+    pygame.display.init()
     global screen
     screen=pygame.display.set_mode((round(2*width/3),round(2*height/3)))
+
+    pygame.display.set_caption("Leaderboard")
+    
     running=True
     metric=None
     gameName=None
 
     #Buttons setup
-    Wbutton=pygame.Rect(100,100,200,50)
-    Lbutton=pygame.Rect(100,200,200,50)
-    Rbutton=pygame.Rect(100,300,200,50)
-    Ebutton=pygame.Rect(100,400,200,50)
+    WinRect=pygame.Rect(100,100,200,50)
+    LoseRect=pygame.Rect(100,200,200,50)
+    RatioRect=pygame.Rect(100,300,200,50)
+    ExitRect=pygame.Rect(100,400,200,50)
 
-    TTTbutton=pygame.Rect(400,100,200,50)
-    Obutton=pygame.Rect(400,200,200,50)
-    Cbutton=pygame.Rect(400,300,200,50)
+    TTTRect=pygame.Rect(400,100,200,50)
+    OthelloRect=pygame.Rect(400,200,200,50)
+    Connect4Rect=pygame.Rect(400,300,200,50)
+
+    global font
+    Wbutton=Button(screen,font,WinRect,"Wins","leaderboard")
+    Lbutton=Button(screen,font,LoseRect,"Losses","leaderboard")
+    Rbutton=Button(screen,font,RatioRect,"Ratio","leaderboard")
+    Ebutton=Button(screen,font,ExitRect,"Exit","leaderboard")
+    
+    TTTbutton=Button(screen,font,TTTRect,"TicTacToe","leaderboard")
+    Obutton=Button(screen,font,OthelloRect,"Othello","leaderboard")
+    Cbutton=Button(screen,font,Connect4Rect,"Connect4","leaderboard")
+
     #
-
+    #Button init - def __init__(self,screen,font,rect,text,mode):
     while running:
         screen.fill((30,30,30))
-
-        #draw metric buttons
-        draw_leaderboard_button(Wbutton,"Wins",metric=="wins")
-        draw_leaderboard_button(Lbutton,"Losses",metric=="losses")
-        draw_leaderboard_button(Rbutton,"Ratio",metric=="ratio")
-        draw_leaderboard_button(Ebutton,"Exit",False)
-
-        #draw game buttons
-        draw_leaderboard_button(TTTbutton,"TicTacToe",gameName=="tictactoe")
-        draw_leaderboard_button(Obutton,"Othello",gameName=="othello")
-        draw_leaderboard_button(Cbutton,"Connect4",gameName=="connect4")
-
         font=pygame.font.Font(None,36)
+        #def draw(self,mouse_pos,mouse_pressed):
+        mouse_pos=pygame.mouse.get_pos()
+        mouse_pressed=pygame.mouse.get_pressed()[0]
+        Wbutton.draw(mouse_pos,mouse_pressed)
+        Lbutton.draw(mouse_pos,mouse_pressed)
+        Rbutton.draw(mouse_pos,mouse_pressed)
+        Ebutton.draw(mouse_pos,mouse_pressed)
+
+        TTTbutton.draw(mouse_pos,mouse_pressed)
+        Obutton.draw(mouse_pos,mouse_pressed)
+        Cbutton.draw(mouse_pos,mouse_pressed)
 
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
@@ -231,32 +211,66 @@ def show_leaderboard():
 
             if event.type==pygame.MOUSEBUTTONDOWN:
                 mousepos=event.pos
-
+                #def draw(self,mouse_pos,mouse_pressed):
+                #def clicked(self,mouse_pos):
                 #metric selection
-                if Wbutton.collidepoint(mousepos):
+                
+                if Wbutton.clicked(mousepos):
+                    for i in Wbutton,Lbutton,Rbutton,Ebutton:
+                        i.selected=False
+                    Wbutton.selected=True
                     metric="wins"
-                elif Lbutton.collidepoint(mousepos):
+                elif Lbutton.clicked(mousepos):
+                    for i in Wbutton,Lbutton,Rbutton,Ebutton:
+                        i.selected=False
+                    Lbutton.selected=True
                     metric="losses"
-                elif Rbutton.collidepoint(mousepos):
+                elif Rbutton.clicked(mousepos):
+                    for i in Wbutton,Lbutton,Rbutton,Ebutton:
+                        i.selected=False
+                    Rbutton.selected=True
                     metric="ratio"
-                elif Ebutton.collidepoint(mousepos):
+                elif Ebutton.clicked(mousepos):
                     running=False
 
                 #game selection
-                elif TTTbutton.collidepoint(mousepos):
+                elif TTTbutton.clicked(mousepos):
+                    for i in TTTbutton,Obutton,Cbutton:
+                        i.selected=False
+                    TTTbutton.selected=True
                     gameName="tictactoe"
-                elif Obutton.collidepoint(mousepos):
+                elif Obutton.clicked(mousepos):
+                    for i in TTTbutton,Obutton,Cbutton:
+                        i.selected=False
+                    Obutton.selected=True
                     gameName="othello"
-                elif Cbutton.collidepoint(mousepos):
+                elif Cbutton.clicked(mousepos):
+                    for i in TTTbutton,Obutton,Cbutton:
+                        i.selected=False
+                    Cbutton.selected=True
                     gameName="connect4"
 
                 #run command only if both selected
-                if metric in ["wins","losses","ratio"] and gameName!=None:
+                if metric and gameName:
                     command="bash leaderboard.sh "+metric+" "+gameName
                     os.system(command)
 
         pygame.display.flip()
       
+#menu buttons
+#Button init - def __init__(self,screen,font,rect,text,mode):
+tttRect=pygame.Rect(0,0,300,100)
+tttRect.center=(round(width/2),200)
+c4Rect=pygame.Rect(0,0,300,100)
+c4Rect.center=(round(width/2),350)
+othRect=pygame.Rect(0,0,300,100)
+othRect.center=(round(width/2),500)
+
+tttbutton=Button(screen,font,tttRect,"TicTacToe","menu")
+c4button=Button(screen,font,c4Rect,"Connect4","menu")
+othbutton=Button(screen,font,othRect,"Othello","menu")
+#
+
 play_again=True
 while gameName!="exit":
     screen.fill((20,20,20))
@@ -266,20 +280,9 @@ while gameName!="exit":
     mouse_pressed=pygame.mouse.get_pressed() #(left, middle, right) mouse button states - for us [0] is relevant
     #
 
-    #menu buttons
-    ttt_btn=pygame.Rect(0,0,300,100)
-    ttt_btn.center=(round(width/2),200)
-
-    c4_btn=pygame.Rect(0,0,300,100)
-    c4_btn.center=(round(width/2),350)
-
-    oth_btn=pygame.Rect(0,0,300,100)
-    oth_btn.center=(round(width/2),500)
-
-    draw_menu_button(ttt_btn,"Tic Tac Toe", mouse_pos, mouse_pressed[0])
-    draw_menu_button(c4_btn,"Connect 4", mouse_pos, mouse_pressed[0])
-    draw_menu_button(oth_btn,"Othello", mouse_pos, mouse_pressed[0])
-    #
+    tttbutton.draw(mouse_pos,mouse_pressed)
+    c4button.draw(mouse_pos,mouse_pressed)
+    othbutton.draw(mouse_pos,mouse_pressed)
 
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
@@ -291,21 +294,21 @@ while gameName!="exit":
 
         if event.type==pygame.MOUSEBUTTONUP:
             pos=event.pos
-            if ttt_btn.collidepoint(pos):
+            if tttbutton.clicked(pos):
                 gameName="tictactoe"
                 while play_again:
                     winner,loser,play_again=ttt.play(screen,clock,font,username1,username2)
                     update()
                     
 
-            if c4_btn.collidepoint(pos):
+            if c4button.clicked(pos):
                 gameName="connect4"
                 while play_again:
                     winner,loser,play_again=cf.play(screen,clock,font,username1,username2)
                     update()
 
 
-            if oth_btn.collidepoint(pos):
+            if othbutton.clicked(pos):
                 gameName="othello"
                 while play_again:
                     winner,loser,play_again=oth.play(screen,clock,font,username1,username2)
@@ -314,5 +317,6 @@ while gameName!="exit":
         show_leaderboard()
         play_again=True
         screen=pygame.display.set_mode((width,height))
+        os.environ['SDL_VIDEO_CENTERED']='1'
     pygame.display.flip()
     clock.tick(60)

@@ -34,11 +34,47 @@ def play(screen,clock,font,username1,username2):
     #
 
     #initialising game board
-    game = cg.Game()
-    game.boardHEIGHT=10
-    game.boardWIDTH=10
-    game.board = np.full((game.boardHEIGHT,game.boardWIDTH),None) 
-    hover_color="blue"
+    def checkWin(self,current_row,current_column):
+        board=np.array(self.board)
+        streak=5
+
+        def count(arr):            
+            matches=(arr==game.turn)
+            if matches.all():
+                return len(matches)
+            else:
+                return np.argmax(~matches)
+
+        # vertical
+        up=count(board[max(0,current_row-streak):current_row,current_column][::-1])
+        down=count(board[current_row+1:min(self.boardHEIGHT,current_row+streak+1),current_column])
+
+        # horizontal
+        left=count(board[current_row,max(0,current_column-streak):current_column][::-1])
+        right=count(board[current_row,current_column+1:min(self.boardWIDTH,current_column+streak+1)])
+
+        # diagonal
+        diag=board.diagonal(offset=current_column-current_row)
+        idx=min(current_row,current_column)
+
+        d1_left=count(diag[max(0,idx-streak):idx][::-1])
+        d1_right=count(diag[idx+1:idx+1+streak])
+
+        # / diagonal
+        flipped=np.fliplr(board)
+        colf=self.boardWIDTH-1-current_column
+
+        diag=flipped.diagonal(offset=colf-current_row)
+        idx=min(current_row,colf)
+
+        d2_left=count(diag[max(0,idx-streak):idx][::-1])
+        d2_right=count(diag[idx+1:idx+1+streak])
+
+        if (up+down+1>=streak or left+right+1>=streak or d1_left+d1_right+1>=streak or d2_left+d2_right+1>=streak):
+            return True
+        return False
+    
+    game = cg.Game(checkWin,10,10)
     cell_size=round(70*height/864)
     x_start = round(width/2-(game.boardWIDTH/2)*cell_size)
     x_end = round(width/2+(game.boardWIDTH/2)*cell_size)
@@ -47,79 +83,39 @@ def play(screen,clock,font,username1,username2):
     r = round(cell_size*7/20) #radius of circle/cross
     #
 
-
-    def check(self, turn):
-        streak=5
-        for i in range(0,6):
-            for j in range(0,10):
-                if (game.board[i:(i+5),j] == turn).all(): #checks rows
-                    return True
-        for i in range(0,6):
-            for j in range(0,10):
-                if (game.board[j,i:(i+5)] == turn).all(): #checks columns
-                    return True
-        for i in range(0,6):
-            for j in range(0,6):
-                if ((game.board[i:(i+5),j:(j+5)].diagonal() == turn).all()) or ((np.fliplr(game.board[i:(i+5),j:(j+5)]).diagonal() == turn).all()): #checks diagonals
-                    return True
-        return False
-
-    cg.Game.checkWin = check #implementation done
-
     #username1 is turn=True represented by Circle
     #username2 is turn=False represented by Cross
 
-    def draw_menu_button(rect,text,mouse_pos,mouse_pressed):
-        offset=0
-        if rect.collidepoint(mouse_pos):
-            if mouse_pressed:
-                fill_color=(60,60,60)        # pressed
-                offset=2
-            else:
-                fill_color=(100,100,120)     # hover
-        else:
-            fill_color=(70,70,70)            # idle
+    from design_elements import Button
 
-        border_color=(150,150,150)
+    ClassicRect=pygame.Rect(0,0,round(300*height/864),round(100*height/864))
+    ClassicRect.center=(round(width/2),round(2*height/5))
+    ClassicButton=Button(screen,font,ClassicRect,"Classic","menu")
 
-        r=rect.move(0,offset) #button pressed down effect 
-
-        pygame.draw.rect(screen,fill_color,r,border_radius=15)
-        pygame.draw.rect(screen,border_color,r,3,border_radius=15)
-
-        txt=font.render(text,True,"white")
-        screen.blit(txt,txt.get_rect(center=r.center))
+    BlitzRect=pygame.Rect(0,0,300,100)
+    BlitzRect.center=(round(width/2),round(3*height/5))
+    BlitzButton=Button(screen,font,BlitzRect,"Blitz","menu")
 
     menu = True
     while menu:
         screen.fill(bg_color)
-        classic=pygame.Rect(0,0,300,100)
-        classic.center=(round(width/2),round(height/3))
-
-        blitz=pygame.Rect(0,0,300,100)
-        blitz.center=(round(width/2),round(2*height/3))
-
         mouse_pos=pygame.mouse.get_pos()
-        mouse_pressed=pygame.mouse.get_pressed() #(left, middle, right) mouse button states - for us [0] is relevant
-        draw_menu_button(classic,"Classic", mouse_pos, mouse_pressed[0]) #classic button
-        draw_menu_button(blitz,"Blitz", mouse_pos, mouse_pressed[0]) #blitz button
+        mouse_pressed=pygame.mouse.get_pressed()[0] #(left, middle, right) mouse button states - for us [0] is relevant
+        ClassicButton.draw(mouse_pos,mouse_pressed)
+        BlitzButton.draw(mouse_pos,mouse_pressed)
 
         for event in pygame.event.get():
-
             if event.type == pygame.QUIT:
                 menu = False
-
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     menu = False
-
             if event.type == pygame.MOUSEBUTTONUP:
                 mousepos=event.pos
-                if classic.collidepoint(mousepos):
+                if ClassicButton.clicked(mousepos):
                     game_mode="classic"
                     menu=False
-
-                if blitz.collidepoint(mousepos):
+                if BlitzButton.clicked(mousepos):
                     game_mode="blitz"
                     menu=False
                     
@@ -145,35 +141,35 @@ def play(screen,clock,font,username1,username2):
 
     running=True
     #when player clicks on an empty cell:
-    def move(row,col,turn):
+    def move(row,col):
         centre_x = round(x_start+cell_size/2+row*cell_size) 
         centre_y = round(y_start+cell_size/2+col*cell_size)
 
         nonlocal filled
         filled+=1
-        game.board[row][col]=turn
+        game.board[row][col]=game.turn
         
         nonlocal last_time
         last_time=time.time()
         nonlocal rem_time
         rem_time=turn_time
         
-        if turn:
+        if game.turn:
             circ.append((centre_x,centre_y))
-            if game.checkWin(turn):
-                end(turn)
+            if game.checkWin(row,col):
+                end(game.turn)
         else:
             cross.append((centre_x,centre_y))
-            if game.checkWin(turn):
-                end(turn)
+            if game.checkWin(row,col):
+                end(game.turn)
         game.switchTurn()
     #
 
-    def display_timer(x,y,player,turn):
+    def display_timer(x,y,player):
         w=cell_size
         h=game.boardHEIGHT*cell_size
         
-        is_active=(player==turn)
+        is_active=(player==game.turn)
 
         scale=1.06 if is_active else 1.0
         w_scaled=round(w*scale)
@@ -192,7 +188,7 @@ def play(screen,clock,font,username1,username2):
         pygame.draw.rect(screen,bg,rect,border_radius=20)
         pygame.draw.rect(screen,border_color,rect,border_thickness,border_radius=20)
 
-        if player==turn:
+        if player==game.turn:
             t=rem_time
         else:
             t=turn_time
@@ -282,7 +278,7 @@ def play(screen,clock,font,username1,username2):
             if not game_over:
                 if event.type == pygame.MOUSEBUTTONUP:
                     if col<game.boardWIDTH and col>=0 and row<game.boardHEIGHT and row>=0 and game.board[row][col]==None:
-                        move(row,col,game.turn)
+                        move(row,col)
             else:
                 if event.type==pygame.MOUSEBUTTONUP:
                     pos=event.pos
@@ -314,11 +310,11 @@ def play(screen,clock,font,username1,username2):
             right_x = round(x_end+0.6*cell_size)
             top_y = y_start
             if filled:
-                display_timer(left_x, top_y, True, game.turn)
-                display_timer(right_x, top_y, False, game.turn)
+                display_timer(left_x, top_y, True)
+                display_timer(right_x, top_y, False)
             else:
-                display_timer(left_x, top_y, not game.turn, game.turn)
-                display_timer(right_x, top_y, not game.turn, game.turn)
+                display_timer(left_x, top_y, not game.turn)
+                display_timer(right_x, top_y, not game.turn)
 
 
 

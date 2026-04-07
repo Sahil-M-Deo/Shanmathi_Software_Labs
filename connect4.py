@@ -26,30 +26,18 @@ def play(screen,clock,font,username1,username2):
     turn_time=10
     last_time=time.time()
     #
+    
     pygame.display.set_caption("Connect 4")
     game_mode = None
 
     #initialising game board
-    game = cg.Game()
-    game.boardHEIGHT=7
-    game.boardWIDTH=7
-    game.board = np.full((game.boardHEIGHT,game.boardWIDTH),None)
-    cell_size=100
-    x_start=round(width/2-(game.boardWIDTH/2)*cell_size)
-    x_end=round(width/2+(game.boardWIDTH/2)*cell_size)
-    y_start=round(height/2-(game.boardHEIGHT/2)*cell_size)
-    y_end=y_start+(game.boardHEIGHT*cell_size)
-    r=round(cell_size/2-5) #radius of circle
-    filled=0 #number of filled cells
-    #
-
-
-    def check(self,turn,current_row,current_column):
+    
+    def checkWin(self,current_row,current_column):
         board=np.array(self.board)
         streak=4
 
         def count(arr):
-            matches=(arr==turn)
+            matches=(arr==game.turn)
             return np.argmax(~matches) if not matches.all() else len(matches)
 
         # vertical
@@ -80,54 +68,57 @@ def play(screen,clock,font,username1,username2):
         if (up+down+1>=streak or left+right+1>=streak or d1_left+d1_right+1>=streak or d2_left+d2_right+1>=streak):
             return True
         return False
-
-    cg.Game.checkWin = check #implementation done
+    
+    game = cg.Game(checkWin,7,7)
+    cell_size=round(100*height/864)
+    x_start=round(width/2-(game.boardWIDTH/2)*cell_size)
+    x_end=round(width/2+(game.boardWIDTH/2)*cell_size)
+    y_start=round(height/2-(game.boardHEIGHT/2)*cell_size)
+    y_end=y_start+(game.boardHEIGHT*cell_size)
+    r=round(cell_size/2-5) #radius of circle
+    filled=0 #number of filled cells
+    #
 
     #username1 is turn=True represented by Red
     #username2 is turn=False represented by Yellow
 
-    menu=True
+    from design_elements import Button
+
+    from design_elements import Button
+
+    ClassicRect=pygame.Rect(0,0,round(300*height/864),round(100*height/864))
+    ClassicRect.center=(round(width/2),round(2*height/5))
+    ClassicButton=Button(screen,font,ClassicRect,"Classic","menu")
+
+    BlitzRect=pygame.Rect(0,0,300,100)
+    BlitzRect.center=(round(width/2),round(3*height/5))
+    BlitzButton=Button(screen,font,BlitzRect,"Blitz","menu")
+
+    menu = True
     while menu:
         screen.fill(bg_color)
-        #classic connect4 button
-        classic = pygame.Rect(0,0,300,100) #topleft_coordinates,width,height
-        classic.center= (width/2,100)
-        pygame.draw.rect(screen,"purple",classic)
-        
-        Ctext = font.render("Classic", True, "pink") #true kya karta hai?
-        screen.blit(Ctext, Ctext.get_rect(center=classic.center)) #Text Surface, rectangle to be drawn at
-
-        #blitz connect4 button
-        blitz = pygame.Rect(0,0,300,100)
-        blitz.center= (width/2,300)
-        pygame.draw.rect(screen,"purple",blitz)
-        
-        Btext = font.render("Blitz", True, "pink")
-        screen.blit(Btext, Btext.get_rect(center=blitz.center))
-
+        mouse_pos=pygame.mouse.get_pos()
+        mouse_pressed=pygame.mouse.get_pressed()[0] #(left, middle, right) mouse button states - for us [0] is relevant
+        ClassicButton.draw(mouse_pos,mouse_pressed)
+        BlitzButton.draw(mouse_pos,mouse_pressed)
 
         for event in pygame.event.get():
-
             if event.type == pygame.QUIT:
                 menu = False
-
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     menu = False
-
             if event.type == pygame.MOUSEBUTTONUP:
                 mousepos=event.pos
-                if classic.collidepoint(mousepos):
+                if ClassicButton.clicked(mousepos):
                     game_mode="classic"
                     menu=False
-
-                if blitz.collidepoint(mousepos):
+                if BlitzButton.clicked(mousepos):
                     game_mode="blitz"
                     menu=False
                     
         pygame.display.flip()
         clock.tick(tickrate)
-
 
 
     def draw_board():
@@ -172,7 +163,7 @@ def play(screen,clock,font,username1,username2):
 
     #when player clicks on an empty cell:
     col_filled=np.zeros(game.boardWIDTH,dtype=int) #number of filled cells in each column
-    def move(row,col,turn):
+    def move(row,col):
         
         centre_x=round(x_start+col*cell_size+cell_size/2)
         centre_y=round(y_start+row*cell_size+cell_size/2)
@@ -182,15 +173,15 @@ def play(screen,clock,font,username1,username2):
         
         col_filled[col]+=1
         
-        game.board[row][col]=turn
+        game.board[row][col]=game.turn
         
         nonlocal last_time
         last_time=time.time()
         nonlocal rem_time
         rem_time=turn_time
             
-        if game.checkWin(turn,row,col):
-            end(turn)
+        if game.checkWin(row,col):
+            end(game.turn)
         game.switchTurn()
     #
 
@@ -309,7 +300,7 @@ def play(screen,clock,font,username1,username2):
                     if col<game.boardWIDTH and col>=0:
                         if col_filled[col]<game.boardHEIGHT:
                             row=game.boardHEIGHT-1-col_filled[col]
-                            move(row,col,game.turn)
+                            move(row,col)
             else:
                 if event.type==pygame.MOUSEBUTTONUP:
                     pos=event.pos

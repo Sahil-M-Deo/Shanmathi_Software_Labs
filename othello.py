@@ -35,8 +35,8 @@ y_start = 5
 y_end = 5+(game.boardHEIGHT*cell_size)
 r = (cell_size*2)//5 #radius of pieces
 
-game.board[3][3]=game.board[4][4]=True  #othello board init
-game.board[3][4]=game.board[4][3]=False
+game.board[3][3]=game.board[4][4]=False  #othello board init
+game.board[3][4]=game.board[4][3]=True
 #
 
 username1="player1"
@@ -130,24 +130,26 @@ black = [(centre_x(3),centre_y(3)),(centre_x(4),centre_y(4))]
 
 
 valid_cells=[]
-def validMoves(i,j):
-            if game.board[i][j]==None:
-                score=0
-                directions=([game.board[i,j:].flatten(),game.board[i,j::-1].flatten(),game.board[(i):,j],game.board[(i)::-1,j],(game.board[i::-1,j::-1]).diagonal(),(game.board[i::-1,j:]).diagonal(),(game.board[i:,j:]).diagonal(),(game.board[i:,j::-1]).diagonal()])
+def validMoves():
+            for i in range(game.boardHEIGHT):
+                for j in range(game.boardWIDTH):
+                    if game.board[i][j]==None:
+                        score=0
+                        directions=([game.board[i,j:].flatten(),game.board[i,j::-1].flatten(),game.board[(i):,j],game.board[(i)::-1,j],(game.board[i::-1,j::-1]).diagonal(),(game.board[i::-1,j:]).diagonal(),(game.board[i:,j:]).diagonal(),(game.board[i:,j::-1]).diagonal()])
 
-                for arr in directions:
-                    arr1=arr[1:]
-                    count=0
-                    for k in arr1:
-                        if k == (not game.turn):
-                            count+=1
-                        if k == (game.turn):
-                            score+=count
-                            break
-                        if k == None:
-                            break
-                if score>0:
-                    print(score)
+                        for arr in directions:
+                            arr1=arr[1:]
+                            count=0
+                            for k in arr1:
+                                if k == (not game.turn):
+                                    count+=1
+                                if k == (game.turn):
+                                    score+=count
+                                    break
+                                if k == None:
+                                    break
+                        if score>0:
+                            valid_cells.append((centre_x(i),centre_y(j)))
 
 
 #when player clicks on an empty cell:
@@ -169,6 +171,9 @@ def move(row,col):
         if game.checkWin(game.turn):
             win(game.turn)
     game.switchTurn()
+    global valid_cells
+    valid_cells.clear()
+    validMoves()
 #
 
 def display_timer(x,y,player,turn):
@@ -227,7 +232,7 @@ def end(winner):
         finalColor="grey"
 
 
-
+validMoves()
 play_again=False
     #main game loop:
 while running:
@@ -275,7 +280,7 @@ while running:
         pygame.draw.circle(screen, "black", (a,b), r)
 
     for a,b in valid_cells:
-        pygame.draw.circle(screen, "white", (a,b), r/5)
+        pygame.draw.circle(screen, "green", (a,b), r/5)
 
     if game_mode=="blitz":
         left_x = round(x_start-1.5*cell_size)

@@ -73,7 +73,7 @@ def play(screen,clock,font,username1,username2):
     cell_size=round(100*height/864)
     x_start=round(width/2-(game.boardWIDTH/2)*cell_size)
     x_end=round(width/2+(game.boardWIDTH/2)*cell_size)
-    y_start=round(height/2-(game.boardHEIGHT/2)*cell_size)
+    y_start=round(height/2-(game.boardHEIGHT/2)*cell_size+cell_size*0.4)
     y_end=y_start+(game.boardHEIGHT*cell_size)
     r=round(cell_size/2-5) #radius of circle
     filled=0 #number of filled cells

@@ -1,7 +1,7 @@
 from datetime import date
 import matplotlib
 import numpy as np
-
+from games.design_elements import *
 #centers the window
 import os
 os.environ['SDL_VIDEO_CENTERED']='1'
@@ -151,7 +151,6 @@ def update():
     update_total_wins()
     update_history()
     
-from design_elements import Button
 def show_leaderboard():
     pygame.display.quit()
 
@@ -179,17 +178,18 @@ def show_leaderboard():
     Connect4Rect=pygame.Rect(400,300,200,50)
 
     global font
-    Wbutton=Button(screen,font,WinRect,"Wins","leaderboard")
-    Lbutton=Button(screen,font,LoseRect,"Losses","leaderboard")
-    Rbutton=Button(screen,font,RatioRect,"Ratio","leaderboard")
-    Ebutton=Button(screen,font,ExitRect,"Exit","leaderboard")
+    Wbutton=Button(screen,WinRect,"Wins","leaderboard")
+    Lbutton=Button(screen,LoseRect,"Losses","leaderboard")
+    Rbutton=Button(screen,RatioRect,"Ratio","leaderboard")
+    Ebutton=Button(screen,ExitRect,"Exit","leaderboard")
     
-    TTTbutton=Button(screen,font,TTTRect,"TicTacToe","leaderboard")
-    Obutton=Button(screen,font,OthelloRect,"Othello","leaderboard")
-    Cbutton=Button(screen,font,Connect4Rect,"Connect4","leaderboard")
+	#def __init__(self,screen,rect,text,fill_color,border_color,mode):
+    TTTbutton=Button(screen,TTTRect,"TicTacToe","leaderboard")
+    Obutton=Button(screen,OthelloRect,"Othello","leaderboard")
+    Cbutton=Button(screen,Connect4Rect,"Connect4","leaderboard")
 
     #
-    #Button init - def __init__(self,screen,font,rect,text,mode):
+    #Button init - def __init__(self,screen,rect,text,mode):
     while running:
         screen.fill((30,30,30))
         font=pygame.font.Font(None,36)
@@ -209,11 +209,8 @@ def show_leaderboard():
             if event.type==pygame.QUIT:
                 running=False
 
-            if event.type==pygame.MOUSEBUTTONDOWN:
+            if event.type==pygame.MOUSEBUTTONUP:
                 mousepos=event.pos
-                #def draw(self,mouse_pos,mouse_pressed):
-                #def clicked(self,mouse_pos):
-                #metric selection
                 
                 if Wbutton.clicked(mousepos):
                     for i in Wbutton,Lbutton,Rbutton,Ebutton:
@@ -258,7 +255,7 @@ def show_leaderboard():
         pygame.display.flip()
       
 #menu buttons
-#Button init - def __init__(self,screen,font,rect,text,mode):
+#Button init - def __init__(self,screen,rect,text,mode):
 tttRect=pygame.Rect(0,0,300,100)
 tttRect.center=(round(width/2),200)
 c4Rect=pygame.Rect(0,0,300,100)
@@ -266,9 +263,9 @@ c4Rect.center=(round(width/2),350)
 othRect=pygame.Rect(0,0,300,100)
 othRect.center=(round(width/2),500)
 
-tttbutton=Button(screen,font,tttRect,"TicTacToe","menu")
-c4button=Button(screen,font,c4Rect,"Connect4","menu")
-othbutton=Button(screen,font,othRect,"Othello","menu")
+tttbutton=Button(screen,tttRect,"TicTacToe","menu")
+c4button=Button(screen,c4Rect,"Connect4","menu")
+othbutton=Button(screen,othRect,"Othello","menu")
 #
 
 play_again=True

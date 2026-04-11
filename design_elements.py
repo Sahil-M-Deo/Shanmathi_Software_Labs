@@ -1,6 +1,15 @@
 import pygame
 import numpy as np
 import time
+
+def cap(x,low,high):
+    if x<low:
+        return low
+    elif x>high:
+        return high
+    else:
+        return x
+
 #COLORS
 BLACK=(0,0,0)
 CROSS_PINK=(255,53,94)
@@ -13,6 +22,9 @@ GRAY_4=(40, 40, 40)
 DULL_WHITE=(200, 200, 200)
 CALM_BLUE=(70, 130, 180)
 CUTE_RED=(180, 70, 70)
+YELLOW=(255,220,0)
+RED=(255,0,0)
+BLUE=(0,0,220)
 #
 
 def fit_font(text,rect):
@@ -51,14 +63,6 @@ class Box:
 
         pygame.draw.rect(self.screen,fill_color,r,border_radius=self.border_radius)
         pygame.draw.rect(self.screen,border_color,r,self.border_thickness,border_radius=self.border_radius)
-    
-def cap(x,low,high):
-    if x<low:
-        return low
-    elif x>high:
-        return high
-    else:
-        return x
     
 
 class Button:

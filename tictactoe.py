@@ -6,8 +6,6 @@ import time
 from classGame import *
 from design_elements import *
 
-
-
 def cap(x,low,high):
     if x<low:
         return low
@@ -17,6 +15,10 @@ def cap(x,low,high):
         return x
     
 def play(screen,clock,font,username1,username2):
+
+    play_again=False #to check if user wants to play again after a game ends
+    name_of_winner=None
+    name_of_loser=None
 
     pygame.display.set_caption("TicTacToe")
     
@@ -37,38 +39,36 @@ def play(screen,clock,font,username1,username2):
 
     #time related variables
     blitz_turn_time=10
-    last_time=time.time()
     #
 
     #initialising game board
     def checkWin(self,current_row,current_column):
-        board=np.array(self.board)
         streak=5
 
         def count(arr):            
-            matches=(arr==game.turn)
+            matches=(arr==self.turn)
             if matches.all():
                 return len(matches)
             else:
                 return np.argmax(~matches)
 
         # vertical
-        up=count(board[max(0,current_row-streak):current_row,current_column][::-1])
-        down=count(board[current_row+1:min(self.boardHEIGHT,current_row+streak+1),current_column])
+        up=count(self.board[max(0,current_row-streak):current_row,current_column][::-1])
+        down=count(self.board[current_row+1:min(self.boardHEIGHT,current_row+streak+1),current_column])
 
         # horizontal
-        left=count(board[current_row,max(0,current_column-streak):current_column][::-1])
-        right=count(board[current_row,current_column+1:min(self.boardWIDTH,current_column+streak+1)])
+        left=count(self.board[current_row,max(0,current_column-streak):current_column][::-1])
+        right=count(self.board[current_row,current_column+1:min(self.boardWIDTH,current_column+streak+1)])
 
         # diagonal
-        diag=board.diagonal(offset=current_column-current_row)
+        diag=self.board.diagonal(offset=current_column-current_row)
         idx=min(current_row,current_column)
 
         d1_left=count(diag[max(0,idx-streak):idx][::-1])
         d1_right=count(diag[idx+1:idx+1+streak])
 
         # / diagonal
-        flipped=np.fliplr(board)
+        flipped=np.fliplr(self.board)
         colf=self.boardWIDTH-1-current_column
 
         diag=flipped.diagonal(offset=colf-current_row)
@@ -96,8 +96,9 @@ def play(screen,clock,font,username1,username2):
     r = round(game.cell_size*7/20) #radius of circle/cross
     #
 
-    #username1 is turn=True represented by Circle
-    #username2 is turn=False represented by Cross
+    game.switchTurn()
+    #username1 is turn=False represented by Circle
+    #username2 is turn=True represented by Cross
 
     ClassicRect=pygame.Rect(0,0,round(300*height/864),round(100*height/864))
     ClassicRect.center=(round(width/2),round(2*height/5))
@@ -136,11 +137,10 @@ def play(screen,clock,font,username1,username2):
     board_paths=[]
     def init_board():
         # vertical lines
-        #def __init__(self,screen,p1,p2,color,segments=200,jag=1,seed=0):
-        for idx,i in enumerate(range(x_start+game.cell_size,x_end,game.cell_size)):
+        for i in range(x_start+game.cell_size,x_end,game.cell_size):
             board_paths.append(JaggedLine(screen,(i,y_start),(i,y_end),"white",segments=2000,jag=1))
         # horizontal lines
-        for idx,i in enumerate(range(y_start+game.cell_size,y_end,game.cell_size)):
+        for i in range(y_start+game.cell_size,y_end,game.cell_size):
             board_paths.append(JaggedLine(screen,(x_start,i),(x_end,i),"white",segments=2000,jag=1))
 
     init_board()
@@ -181,8 +181,6 @@ def play(screen,clock,font,username1,username2):
                 T1.switchTurn()
             T2.switchTurn()
         
-        
-        
         if game.turn:
             circ.append((centre_x,centre_y,TIME))
         else:
@@ -190,7 +188,6 @@ def play(screen,clock,font,username1,username2):
             a=centre_x
             b=centre_y
 
-            global CROSS_PINK
             path1=JaggedLine(screen,(a-r,b-r),(a+r,b+r),CROSS_PINK,50)
             path2=JaggedLine(screen,(a+r,b-r),(a-r,b+r),CROSS_PINK,50)
             cross.append((path1,path2,TIME))
@@ -218,8 +215,6 @@ def play(screen,clock,font,username1,username2):
     game_over_time=None
     finalDisplay=""
     finalColor="white"
-    name_of_winner=None
-    name_of_loser=None
 
     def end(winner):
         nonlocal game_over
@@ -228,8 +223,6 @@ def play(screen,clock,font,username1,username2):
         game_over=True
 
         if game_mode=="blitz":
-            nonlocal T1
-            nonlocal T2
             T1.end()
             T2.end()
 
@@ -256,8 +249,6 @@ def play(screen,clock,font,username1,username2):
 
     filled=0 #number of filled cells
 
-    play_again=False
-    
     #popup box
     box_width=500
     box_height=300
@@ -290,14 +281,14 @@ def play(screen,clock,font,username1,username2):
             if not T2.update():
                 end(1)
 
-        x,y = pygame.mouse.get_pos()
+        x,y=mouse_pos=pygame.mouse.get_pos()
+        mouse_pressed=pygame.mouse.get_pressed()[0]
         col = (x-x_start)//game.cell_size
         row = (y-y_start)//game.cell_size
         TIME=time.time()
 
         #
-        mouse_pos=pygame.mouse.get_pos()
-        mouse_pressed=pygame.mouse.get_pressed()[0]
+        
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:

@@ -10,9 +10,6 @@ A multi-user game hub built using **Bash, Python, and Pygame**, with authenticat
 - Python (Pygame) handles gameplay
 - Results stored in `history.csv`
 - Leaderboards and analytics generated
-
-Includes a **JKLM-style word game** as an extension.
-
 ---
 
 ##  Features

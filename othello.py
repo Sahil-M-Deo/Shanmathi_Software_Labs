@@ -16,7 +16,7 @@ bg_color="black"
 #
 
 screen = pygame.display.set_mode((width,height))
-pygame.display.set_caption("TicTacToe")
+pygame.display.set_caption("Othello")
 clock = pygame.time.Clock()
 game_mode = None
 
@@ -27,14 +27,14 @@ def checkWin(self,row,col):
     if valid_cells:
         return None
     else:
-        number_of_white=len(game.board[game.board==True].flatten())
-        number_of_black=len(game.board[game.board==False].flatten())
+        number_of_white=np.sum(game.board==False)
+        number_of_black=np.sum(game.board==True)
         if number_of_white>number_of_black:
-            return 1
-        if number_of_white<number_of_black:
-            return 0
-        if number_of_white==number_of_black:
             return -1
+        if number_of_white<number_of_black:
+            return 1
+        if number_of_white==number_of_black:
+            return 0
 
 game = Game(checkWin,8,8,80)
 hover_color="blue"
@@ -48,21 +48,12 @@ r = (game.cell_size*2)//5 #radius of pieces
 game.board[3][3]=game.board[4][4]=False  #othello board init
 game.board[3][4]=game.board[4][3]=True
 
-#
-
-username1="player1"
-username2="player2"
+username1="black"
+username2="white"
 
 #time related variables
-turn_time=10
-last_time=time.time()
 blitz_turn_time=10
 #
-
-
-
-#username1 is turn=True represented by Circle
-#username2 is turn=False represented by Cross
 
 ClassicRect=pygame.Rect(0,0,round(300*height/864),round(100*height/864))
 ClassicRect.center=(round(width/2),round(2*height/5))
@@ -98,9 +89,6 @@ while menu:
     pygame.display.flip()
     clock.tick(tickrate)
 
-
-
-
 def draw_board():
     pygame.draw.rect(screen,(222, 184, 135),(x_start,y_start,(x_end-x_start),(y_end-y_start)))
     for i in range(x_start, x_end+game.cell_size, game.cell_size):
@@ -124,6 +112,7 @@ def centre_y(row):
 
 valid_cells=[]
 def validMoves():
+    valid_cells.clear()
     for i in range(game.boardHEIGHT):
         for j in range(game.boardWIDTH):
             if game.board[i][j]==None:
@@ -149,10 +138,13 @@ def move(row,col):
     global hover_color
     global filled
     global valid_cells
-    global game
-    
     if (centre_x(col),centre_y(row)) in valid_cells:
-        
+        filled+=1
+        if game_mode=="blitz":
+            if filled>1:
+                T1.switchTurn()
+            T2.switchTurn()
+
         game.board[row][col]=game.turn
 
         directions=([game.board[row,col:],game.board[row,col::-1],game.board[(row):,col],game.board[(row)::-1,col],(game.board[row::-1,col::-1]).diagonal(),(game.board[row::-1,col:]).diagonal(),(game.board[row:,col:]).diagonal(),(game.board[row:,col::-1]).diagonal()])
@@ -179,101 +171,46 @@ def move(row,col):
                     if val == None:
                         break
         game.switchTurn()
-
-        valid_cells.clear()
         validMoves()
 
         #if no valid move left
-        if  not (game.checkWin(row,col)==None):
-                game.turn = not game.turn
-                validMoves()
-                #checks for valid moves on other player
-                if not (game.checkWin(row,col)==None): #if none then end game, else continue
-                    end(game.checkWin(row,col))
+        if not valid_cells:
+            game.switchTurn()
+            validMoves()
+            #checks for valid moves on other player
+            if not (game.checkWin(row,col)==None): #if none then end game, else continue
+                end(game.checkWin(row,col))
 
 #
 
-def display_timer(x,y,player):
-        w=game.cell_size
-        h=game.boardHEIGHT*game.cell_size
-        
-        is_active=(player==game.turn)
-
-        scale=1.06 if is_active else 1.0
-        w_scaled=round(w*scale)
-        h_scaled=round(h*scale)
-        
-        rect=pygame.Rect(round(x-(w_scaled-w)/2),round(y-(h_scaled-h)/2),w_scaled,h_scaled)
-
-        if is_active:
-            bg=(60,60,60)
-            border_color=(25,25,25)
-            border_thickness=5
-        else:
-            bg=(30,30,30)
-            border_color=(15,15,15)
-            border_thickness=2
-        pygame.draw.rect(screen,bg,rect,border_radius=20)
-        pygame.draw.rect(screen,border_color,rect,border_thickness,border_radius=20)
-
-        if player==game.turn:
-            t=rem_time
-        else:
-            t=turn_time
-
-        ratio_raw=t/turn_time
-        ratio=ratio_raw*ratio_raw*(3-2*ratio_raw)
-        if ratio<0.5:
-            r=255
-            g=int(880*ratio*ratio) 
-        else:
-            r=510*(1-ratio)
-            g=220
-        color=(r,g,0)
-        
-        padding=6
-        inner_w = rect.width-2*padding
-        inner_h = rect.height-2*padding
-
-        fill_h = round(inner_h * ratio)
-
-        # surface for inner rounded shape
-        fill_surf = pygame.Surface((inner_w, inner_h))
-
-        # draw full rounded rect (defines the shape)
-        pygame.draw.rect(fill_surf, color, (0, 0, inner_w, inner_h), border_radius = 15)
-        # clip from bottom
-        if fill_h > 0:
-            clipped = fill_surf.subsurface((0, inner_h - fill_h, inner_w, fill_h))
-            screen.blit(clipped, (rect.x + padding, rect.y + padding + inner_h - fill_h))
-
-        if not is_active:
-            overlay=pygame.Surface((rect.width,rect.height),pygame.SRCALPHA)
-            overlay.fill((0,0,0,120))
-            screen.blit(overlay,(rect.x,rect.y))
-
-        txt=f"{t:.1f}"
-        text=font.render(txt,True,"white")
-        screen.blit(text,text.get_rect(center=(rect.centerx,rect.bottom+25)))
-
-
 game_over = False
+game_over_time=None
 finalDisplay=""
 finalColor="white"
 name_of_winner=None
 name_of_loser=None
 
 def end(winner):
-    global bg_color
-    bg_color=(0,150,70)
+    
     global game_over
+    global game_over_time
+    global finalColor
+    global finalDisplay
+    global name_of_winner
+    global name_of_loser
+    game_over_time=time.time()
     game_over=True
+
+    if game_mode=="blitz":
+        T1.end()
+        T2.end()
+        
     if winner == 1:
         name_of_winner=username1
         name_of_loser=username2
         finalDisplay=username1+" WINS!"
         finalColor="green"
-    elif winner == 0:
+    elif winner == -1:
         name_of_winner=username2
         name_of_loser=username1
         finalDisplay=username2+" WINS!"
@@ -286,47 +223,30 @@ def end(winner):
 
 filled=0 #number of filled cells
 
-def end(winner):
-    global finalDisplay
-    global game_over
-    global finalColor
-    global name_of_winner
-    global name_of_loser
-    game_over=True
-    if winner == 1:
-        name_of_winner=username1
-        name_of_loser=username2
-        finalDisplay=username1+" WINS!"
-        finalColor="green"
-    elif winner == 0:
-        name_of_winner=username2
-        name_of_loser=username1
-        finalDisplay=username2+" WINS!"
-        finalColor="green"
-    else:
-        name_of_winner="TIE"
-        name_of_loser="TIE"
-        finalDisplay="IT'S A TIE!"
-        finalColor="grey"
-
-
 validMoves()
 
 
 if game_mode=="blitz":
-        #init timers
-        left_x = round(x_start-1.5*game.cell_size)
-        right_x = round(x_end+0.6*game.cell_size)
-        T1=Timer(screen,font,left_x,y_start-0.2*game.cell_size,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
-        T2=Timer(screen,font,right_x,y_start-0.2*game.cell_size,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
-        #
+    #init timers
+    left_x = round(x_start-1.5*game.cell_size)
+    right_x = round(x_end+0.6*game.cell_size)
+    T1=Timer(screen,font,left_x,y_start,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
+    T2=Timer(screen,font,right_x,y_start,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
+    #
 play_again=False
     #main game loop:
 while running:
     screen.fill(bg_color)
+    if game_mode=="blitz":
+        if not T1.update():
+            end(0)
+        if not T2.update():
+            end(1)
+            
     x,y = pygame.mouse.get_pos()
     col = (x-x_start)//game.cell_size
     row = (y-y_start)//game.cell_size
+    TIME=time.time()
 
     for event in pygame.event.get():
 
@@ -361,31 +281,19 @@ while running:
     for i in range(game.boardHEIGHT):
         for j in range(game.boardWIDTH):
             if game.board[i][j]==True:
-                pygame.draw.circle(screen, "white", (centre_x(j),centre_y(i)), r)
+                pygame.draw.circle(screen, BLACK, (centre_x(j),centre_y(i)), r)
             if game.board[i][j]==False:
-                pygame.draw.circle(screen, "black", (centre_x(j),centre_y(i)), r)
+                pygame.draw.circle(screen, WHITE, (centre_x(j),centre_y(i)), r)
+                
 
     for a,b in valid_cells:
-        pygame.draw.circle(screen, "green", (a,b), r/5)
+        pygame.draw.circle(screen, GREEN, (a,b), r/5)
 
     if game_mode=="blitz":
-        left_x = round(x_start-1.5*game.cell_size)
-        right_x = round(x_end+0.6*game.cell_size)
-        top_y = y_start
-        
-        display_timer(left_x, top_y, not game.turn)
-        display_timer(right_x, top_y, game.turn)
+        T1.display()
+        T2.display()
 
-
-
-    if not game_over:
-
-        if game_mode=="blitz":
-            rem_time = turn_time-(time.time()-last_time)
-            if rem_time<=0:
-                rem_time=0
-                end(not game.turn)
-    else:
+    if game_over:
         # dark overlay
         fade=pygame.Surface(screen.get_size(),pygame.SRCALPHA)
         fade.fill((0,0,0,180))

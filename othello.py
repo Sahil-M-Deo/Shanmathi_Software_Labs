@@ -4,6 +4,14 @@ import time
 from classGame import *
 from design_elements import *
 
+def cap(x,low,high):
+    if x<low:
+        return low
+    elif x>high:
+        return high
+    else:
+        return x
+
 def play(screen,clock,font,username1,username2):
     play_again=False
     name_of_winner=None
@@ -200,7 +208,7 @@ def play(screen,clock,font,username1,username2):
                     for idx,val in enumerate(arr1):
                         if val==(not game.turn):
                             arr1[idx]=game.turn
-                            time_board1[idx]=TIME
+                            time_board1[idx]=TIME+0.1*idx
                         if val==game.turn:
                             break
                         if val is None:
@@ -257,7 +265,7 @@ def play(screen,clock,font,username1,username2):
         T2=Timer(screen,font,right_x,y_start,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
 
     running=True
-    flip_time=0.2
+    flip_time=0.3
     font_big=pygame.font.Font(None,80)
     font_small=pygame.font.Font(None,40)
 
@@ -317,7 +325,7 @@ def play(screen,clock,font,username1,username2):
                     if (TIME-time_board[i][j])>flip_time:
                         pygame.draw.circle(screen, "white", (centre_x(j),centre_y(i)), r)
                     else:
-                        frac=(TIME-time_board[i][j])/flip_time
+                        frac=cap((TIME-time_board[i][j])/flip_time,0.01,0.99)
                         if frac<0.5:
                             rect=pygame.Rect(0,0,2*r,2*r-frac*4*r)
                             rect.center=((centre_x(j),centre_y(i)))
@@ -330,7 +338,7 @@ def play(screen,clock,font,username1,username2):
                     if (TIME-time_board[i][j])>flip_time:
                         pygame.draw.circle(screen, "black", (centre_x(j),centre_y(i)), r)
                     else:
-                        frac=(TIME-time_board[i][j])/flip_time
+                        frac=cap((TIME-time_board[i][j])/flip_time,0.01,0.99)
                         if frac<0.5:
                             rect=pygame.Rect(0,0,2*r,2*r-frac*4*r)
                             rect.center=((centre_x(j),centre_y(i)))

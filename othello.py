@@ -89,14 +89,25 @@ def play(screen,clock,font,username1,username2):
         pygame.display.flip()
         clock.tick(tickrate)
 
-    def draw_board():
-        pygame.draw.rect(screen,(222,184,135),(x_start,y_start,(x_end-x_start),(y_end-y_start)))
-        for i in range(x_start,x_end+game.cell_size,game.cell_size):
-            pygame.draw.line(screen,(139,69,19),(i,y_start),(i,y_end),5)
+    BOARD_SURFACE=pygame.Surface((x_end-x_start,y_end-y_start))
+    BOARD_SURFACE.fill(bg_color)
 
-        for i in range(y_start,y_end+game.cell_size,game.cell_size):
-            pygame.draw.line(screen,(139,69,19),(x_start,i),(x_end,i),5)
+    pygame.draw.rect(BOARD_SURFACE,(222,184,135),(0,0,(x_end-x_start),(y_end-y_start)))
 
+    for i in range(0,x_end-x_start+game.cell_size,game.cell_size):
+        pygame.draw.line(BOARD_SURFACE,(139,69,19),(i,0),(i,y_end-y_start),5)
+
+    for i in range(0,y_end-y_start+game.cell_size,game.cell_size):
+        pygame.draw.line(BOARD_SURFACE,(139,69,19),(0,i),(x_end-x_start,i),5)
+    
+    
+    opacity=150
+    GHOST_BLACK_SURFACE=pygame.Surface((2*r, 2*r), pygame.SRCALPHA)
+    pygame.draw.circle(GHOST_BLACK_SURFACE,(*BLACK,opacity),(r,r),r)
+
+    GHOST_WHITE_SURFACE=pygame.Surface((2*r, 2*r), pygame.SRCALPHA)
+    pygame.draw.circle(GHOST_WHITE_SURFACE,(*WHITE,opacity),(r,r),r)
+    
     def hover(row, col):
         if 0 <= row < game.boardHEIGHT and 0 <= col < game.boardWIDTH:
             cell_x = x_start + col * game.cell_size + 0.1*game.cell_size
@@ -107,20 +118,21 @@ def play(screen,clock,font,username1,username2):
                              (cell_x, cell_y, game.cell_size*0.8, game.cell_size*0.8))
 
             # 3. Draw ghost disc
-            color = WHITE if game.turn else BLACK
-            opacity = 150
-            ghost_surface = pygame.Surface((2*r, 2*r), pygame.SRCALPHA)
-            # 120 = transparency (0–255)
-            pygame.draw.circle(ghost_surface,(*color,opacity),(r,r),r)
-            screen.blit(ghost_surface,(centre_x(col)-r,centre_y(row)-r))
+            if game.turn:
+                screen.blit(GHOST_WHITE_SURFACE,(centreX[col]-r,centreY[row]-r))
+            else:
+                screen.blit(GHOST_BLACK_SURFACE,(centreX[col]-r,centreY[row]-r))
+            
 
     def centre_x(col):
         return x_start+(game.cell_size//2)+(col*game.cell_size)
+    centreX=[centre_x(col) for col in range(game.boardWIDTH)]
 
     def centre_y(row):
         return y_start+(game.cell_size//2)+(row*game.cell_size)
+    centreY=[centre_y(row) for row in range(game.boardHEIGHT)]
 
-    valid_cells=[]
+    valid_cells=set()
 
     def validMoves():
         valid_cells.clear()
@@ -151,7 +163,7 @@ def play(screen,clock,font,username1,username2):
                             if k is None:
                                 break
                     if score>0:
-                        valid_cells.append((centre_x(j),centre_y(i)))
+                        valid_cells.add((centreX[j],centreY[i]))
 
     def move(row,col):
         nonlocal filled,valid_cells,game
@@ -163,7 +175,7 @@ def play(screen,clock,font,username1,username2):
                 T1.switchTurn()
             T2.switchTurn()
 
-        if (centre_x(col),centre_y(row)) in valid_cells:
+        if (centreX[col],centreY[row]) in valid_cells:
             game.board[row][col]=game.turn
             time_board[row][col]=0
 
@@ -293,7 +305,7 @@ def play(screen,clock,font,username1,username2):
             if not game_over:
                 if event.type==pygame.MOUSEBUTTONUP:
                     if 0<=col<game.boardWIDTH and 0<=row<game.boardHEIGHT:
-                        if (centre_x(col),centre_y(row)) in valid_cells:
+                        if (centreX[col],centreY[row]) in valid_cells:
                             move(row,col)
             else:
                 if event.type==pygame.MOUSEBUTTONUP:
@@ -304,18 +316,13 @@ def play(screen,clock,font,username1,username2):
                     if menu_btn.collidepoint(pos):
                         running=False
 
-        
-        
-
-        
-
-        draw_board()
+        screen.blit(BOARD_SURFACE,(x_start,y_start))
 
         for a,b in valid_cells:
             pygame.draw.circle(screen,(90, 90, 90),(a,b),r/5)
 
         if 0<=row<game.boardHEIGHT and 0<=col<game.boardWIDTH:
-            if (centre_x(col),centre_y(row)) in valid_cells:
+            if (centreX[col],centreY[row]) in valid_cells:
                 hover(row,col)
 
         TIME=time.time()
@@ -323,29 +330,29 @@ def play(screen,clock,font,username1,username2):
             for j in range(game.boardWIDTH):
                 if game.board[i][j]==True:
                     if (TIME-time_board[i][j])>flip_time:
-                        pygame.draw.circle(screen, "white", (centre_x(j),centre_y(i)), r)
+                        pygame.draw.circle(screen, "white", (centreX[j],centreY[i]), r)
                     else:
                         frac=cap((TIME-time_board[i][j])/flip_time,0.01,0.99)
                         if frac<0.5:
                             rect=pygame.Rect(0,0,2*r,2*r-frac*4*r)
-                            rect.center=((centre_x(j),centre_y(i)))
+                            rect.center=((centreX[j],centreY[i]))
                             pygame.draw.ellipse(screen,"black",rect)
                         else:
                             rect=pygame.Rect(0,0,2*r,(frac-0.5)*4*r)
-                            rect.center=((centre_x(j),centre_y(i)))
+                            rect.center=((centreX[j],centreY[i]))
                             pygame.draw.ellipse(screen,"white",rect)
                 if game.board[i][j]==False:
                     if (TIME-time_board[i][j])>flip_time:
-                        pygame.draw.circle(screen, "black", (centre_x(j),centre_y(i)), r)
+                        pygame.draw.circle(screen, "black", (centreX[j],centreY[i]), r)
                     else:
                         frac=cap((TIME-time_board[i][j])/flip_time,0.01,0.99)
                         if frac<0.5:
                             rect=pygame.Rect(0,0,2*r,2*r-frac*4*r)
-                            rect.center=((centre_x(j),centre_y(i)))
+                            rect.center=((centreX[j],centreY[i]))
                             pygame.draw.ellipse(screen,"white",rect)
                         else:
                             rect=pygame.Rect(0,0,2*r,(frac-0.5)*4*r)
-                            rect.center=((centre_x(j),centre_y(i)))
+                            rect.center=((centreX[j],centreY[i]))
                             pygame.draw.ellipse(screen,"black",rect)
 
         

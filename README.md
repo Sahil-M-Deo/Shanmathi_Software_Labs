@@ -33,8 +33,6 @@ A multi-user game hub built using **Bash, Python, and Pygame**, with authenticat
 - Tic-Tac-Toe (10*10)
 - Othello
 - Connect Four (7*7)
-- JKLM-style word game (extension)
-- Not decided which more (if any)
 ---
 
 ##  File Structure
@@ -105,5 +103,8 @@ Note: It is logical to conclude that n>u so this optimisation is very much justi
 - Performance improvement (Time complexity-wise)
 - Restricted usernames and passwords to a certain character set by rigorously testing and finding ways to crack the auth procedure
 - Used pygame subsurface for a smooth timer animation
-- Generalised design elements like buttons
+- Generalised design elements like buttons, boxes, jagged lines
+- Used preprocessed surfaces to reduce pygame draw time
+- Animated moves
+- Ghost previews of moves
 - (More to be added over time)

@@ -31,7 +31,7 @@ A multi-user game hub built using **Bash, Python, and Pygame**, with authenticat
 
 ###  Games
 - Tic-Tac-Toe (10*10)
-- Othello
+- Othello (8*8)
 - Connect Four (7*7)
 ---
 

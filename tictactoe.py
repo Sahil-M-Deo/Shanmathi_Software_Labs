@@ -7,15 +7,10 @@ from classGame import *
 from design_elements import *
 
 def cap(x,low,high):
-    if x<low:
-        return low
-    elif x>high:
-        return high
-    else:
-        return x
+    return max(low,min(x,high))
     
 def play(screen,clock,font,username1,username2):
-
+    username1,username2=username2,username1
     play_again=False #to check if user wants to play again after a game ends
     name_of_winner=None
     name_of_loser=None
@@ -134,26 +129,29 @@ def play(screen,clock,font,username1,username2):
         pygame.display.flip()
         clock.tick(tickrate)
 
-    board_paths=[]
+    
+    BOARD_SURFACE=pygame.Surface((x_end-x_start,y_end-y_start))
     def init_board():
+        board_paths=[]
         # vertical lines
-        for i in range(x_start+game.cell_size,x_end,game.cell_size):
-            board_paths.append(JaggedLine(screen,(i,y_start),(i,y_end),"white",segments=2000,jag=1))
+        for i in range(game.cell_size,x_end-x_start,game.cell_size):
+            board_paths.append(JaggedLine(BOARD_SURFACE,(i,0),(i,y_end-y_start),"white",segments=2000,jag=1))
         # horizontal lines
-        for i in range(y_start+game.cell_size,y_end,game.cell_size):
-            board_paths.append(JaggedLine(screen,(x_start,i),(x_end,i),"white",segments=2000,jag=1))
-
-    init_board()
-    def draw_board():
+        for i in range(game.cell_size,y_end-y_start,game.cell_size):
+            board_paths.append(JaggedLine(BOARD_SURFACE,(0,i),(x_end-x_start,i),"white",segments=2000,jag=1))
         for path in board_paths:
             path.draw()
+    
+    init_board()
+    def draw_board():
+        screen.blit(BOARD_SURFACE,(x_start,y_start))
 
     def hover(row,col):
         if game.turn:
             hover_color=CIRCLE_YELLOW
         else:
             hover_color=CROSS_PINK
-        pygame.draw.rect(screen, hover_color, (x_start+col*game.cell_size,y_start+row*game.cell_size,game.cell_size,game.cell_size))
+        pygame.draw.rect(screen, hover_color, (x_start+(col+0.05)*game.cell_size,y_start+(row+0.05)*game.cell_size,0.92*game.cell_size,0.92*game.cell_size))
 
     if game_mode=="blitz":
         #init timers
@@ -212,14 +210,11 @@ def play(screen,clock,font,username1,username2):
     #
 
     game_over = False
-    game_over_time=None
     finalDisplay=""
     finalColor="white"
 
     def end(winner):
         nonlocal game_over
-        nonlocal game_over_time
-        game_over_time=time.time()
         game_over=True
 
         if game_mode=="blitz":
@@ -271,6 +266,11 @@ def play(screen,clock,font,username1,username2):
     BTN_play_again=Button(screen,play_again_rect,"PLAY AGAIN",CALM_BLUE,DULL_WHITE,"menu")
     main_menu=Button(screen,menu_rect,"MAIN MENU",CUTE_RED,DULL_WHITE,"menu")
     
+    most_recent_time=0
+
+    FADE_SURFACE=pygame.Surface((screen.get_size()),pygame.SRCALPHA)
+    FADE_SURFACE.fill((*BLACK,180))
+    font_big=pygame.font.Font(None,80)
     #main game loop:
     while running:
         #setup new frame
@@ -302,6 +302,7 @@ def play(screen,clock,font,username1,username2):
                 if event.type == pygame.MOUSEBUTTONUP:
                     if game.valid_move(row,col) and game.board[row][col]==None:
                         move(row,col)
+                        most_recent_time=TIME
             else:
                 if event.type==pygame.MOUSEBUTTONUP:
                     if BTN_play_again.clicked(mouse_pos):
@@ -309,13 +310,13 @@ def play(screen,clock,font,username1,username2):
                         running=False #go back to game.py, (stats will be updated and shown there)
                     if main_menu.clicked(mouse_pos):
                         running=False      # go back to game.py, (stats will be updated and shown there)
-                                       
+                                              
+        #Grid:
+        draw_board()
+
         # Hover effect:
         if (not game_over) and game.valid_move(row,col) and game.board[row][col]==None:
             hover(row,col)
-       
-        #Grid:
-        draw_board()
 
         # adding crosses
         for path1,path2,t in cross:
@@ -353,27 +354,24 @@ def play(screen,clock,font,username1,username2):
                 game_over=True
                 end(-1)
         else:
-            if 0.6<TIME-game_over_time:
+            T=TIME-most_recent_time
+            if 0.6<T:
                 if WINLINE:
                     draw_time=0.4
-                    t=TIME-game_over_time-0.6
-                    f=cap(t/draw_time,0,1)
+                    f=cap((T-0.6)/draw_time,0,1)
                     if game.turn:
                         WINLINE.color=CROSS_PINK
                     else:
                         WINLINE.color=CIRCLE_YELLOW
                     WINLINE.draw_partial(f)
 
-            if 1.5<TIME-game_over_time:
+            if 1.3<T:
                 # dark overlay
-                fade=pygame.Surface(screen.get_size(),pygame.SRCALPHA)
-                fade.fill((0,0,0,180))
-                screen.blit(fade,(0,0))
+                screen.blit(FADE_SURFACE,(0,0))
 
                 #def draw(self,mouse_pos,mouse_pressed):
                 # play again and main menu buttons
                 popup.draw()
-                font_big=pygame.font.Font(None,80)
                 text=font_big.render(finalDisplay,True,finalColor)
                 screen.blit(text,text.get_rect(center=(box_rect.centerx,box_rect.top+80)))
                 BTN_play_again.draw(mouse_pos,mouse_pressed)

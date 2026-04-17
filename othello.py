@@ -92,13 +92,13 @@ def play(screen,clock,font,username1,username2):
     BOARD_SURFACE=pygame.Surface((x_end-x_start,y_end-y_start))
     BOARD_SURFACE.fill(bg_color)
 
-    pygame.draw.rect(BOARD_SURFACE,(222,184,135),(0,0,(x_end-x_start),(y_end-y_start)))
+    pygame.draw.rect(BOARD_SURFACE,MILKY_COFFEE,(0,0,(x_end-x_start),(y_end-y_start)))
 
     for i in range(0,x_end-x_start+game.cell_size,game.cell_size):
-        pygame.draw.line(BOARD_SURFACE,(139,69,19),(i,0),(i,y_end-y_start),5)
+        pygame.draw.line(BOARD_SURFACE,DARK_COFFEE,(i,0),(i,y_end-y_start),5)
 
     for i in range(0,y_end-y_start+game.cell_size,game.cell_size):
-        pygame.draw.line(BOARD_SURFACE,(139,69,19),(0,i),(x_end-x_start,i),5)
+        pygame.draw.line(BOARD_SURFACE,DARK_COFFEE,(0,i),(x_end-x_start,i),5)
     
     
     opacity=150
@@ -236,14 +236,11 @@ def play(screen,clock,font,username1,username2):
                 end(game.checkWin(row,col))
 
     game_over=False
-    game_over_time=None
     finalDisplay=""
     finalColor="white"
 
     def end(winner):
-        nonlocal game_over,game_over_time,finalColor,finalDisplay,name_of_winner,name_of_loser
-
-        game_over_time=time.time()
+        nonlocal game_over,finalColor,finalDisplay,name_of_winner,name_of_loser
         game_over=True
 
         if game_mode=="blitz":
@@ -278,19 +275,46 @@ def play(screen,clock,font,username1,username2):
 
     running=True
     flip_time=0.3
+
+    #popup box
+    box_width=500
+    box_height=300
+    box_rect=pygame.Rect(0,0,box_width,box_height)
+    box_rect.center=(round(width/2),round(height/2))
+    #
+    
+    #The two buttons
+    btn_w=180
+    btn_h=60
+    play_again_rect=pygame.Rect(0,0,btn_w,btn_h)
+    menu_rect=pygame.Rect(0,0,btn_w,btn_h)
+    play_again_rect.center=(box_rect.centerx-110,box_rect.bottom-80)
+    menu_rect.center=(box_rect.centerx+110,box_rect.bottom-80)
+    #
+    
+    #Box init: def __init__(self,screen,rect,text="",fill_color=GRAY_2,border_color=DULL_WHITE,border_thickness=3,border_radius=15):
+    popup=Box(screen,box_rect,"",GRAY_4,DULL_WHITE,2,10)
+    #def __init__(self,screen,rect,text,fill_color,border_color,mode):
+    BTN_play_again=Button(screen,play_again_rect,"PLAY AGAIN",CALM_BLUE,DULL_WHITE,"menu")
+    main_menu=Button(screen,menu_rect,"MAIN MENU",CUTE_RED,DULL_WHITE,"menu")
+
+    FADE_SURFACE=pygame.Surface((screen.get_size()),pygame.SRCALPHA)
+    FADE_SURFACE.fill((*BLACK,180))
     font_big=pygame.font.Font(None,80)
-    font_small=pygame.font.Font(None,40)
+    most_recent_time=0
 
     while running:
         screen.fill(bg_color)
+        TIME=time.time()
 
         if game_mode=="blitz":
             if not T1.update():
                 end(-1)
             if not T2.update():
                 end(1)
-
-        x,y=pygame.mouse.get_pos()
+                
+        x,y=mouse_pos=pygame.mouse.get_pos()
+        mouse_pressed=pygame.mouse.get_pressed()[0] #(left, middle, right) mouse button states - for us [0] is relevant
         col=(x-x_start)//game.cell_size
         row=(y-y_start)//game.cell_size
 
@@ -307,25 +331,25 @@ def play(screen,clock,font,username1,username2):
                     if 0<=col<game.boardWIDTH and 0<=row<game.boardHEIGHT:
                         if (centreX[col],centreY[row]) in valid_cells:
                             move(row,col)
+                            most_recent_time=TIME
             else:
                 if event.type==pygame.MOUSEBUTTONUP:
-                    pos=event.pos
-                    if play_again_btn.collidepoint(pos):
+                    if BTN_play_again.clicked(mouse_pos):
                         play_again=True
-                        running=False
-                    if menu_btn.collidepoint(pos):
-                        running=False
+                        running=False #go back to game.py, (stats will be updated and shown there)
+                    if main_menu.clicked(mouse_pos):
+                        running=False      # go back to game.py, (stats will be updated and shown there)
 
         screen.blit(BOARD_SURFACE,(x_start,y_start))
 
         for a,b in valid_cells:
             pygame.draw.circle(screen,(90, 90, 90),(a,b),r/5)
 
-        if 0<=row<game.boardHEIGHT and 0<=col<game.boardWIDTH:
-            if (centreX[col],centreY[row]) in valid_cells:
-                hover(row,col)
-
-        TIME=time.time()
+        if not game_over:
+            if 0<=row<game.boardHEIGHT and 0<=col<game.boardWIDTH:
+                if (centreX[col],centreY[row]) in valid_cells:
+                    hover(row,col)
+        
         for i in range(game.boardHEIGHT):
             for j in range(game.boardWIDTH):
                 if game.board[i][j]==True:
@@ -361,33 +385,17 @@ def play(screen,clock,font,username1,username2):
             T2.display()
 
         if game_over:
-            fade=pygame.Surface(screen.get_size(),pygame.SRCALPHA)
-            fade.fill((0,0,0,180))
-            screen.blit(fade,(0,0))
+            if TIME-most_recent_time>flip_time*3:
+            # dark overlay
+                screen.blit(FADE_SURFACE,(0,0))
 
-            box_rect=pygame.Rect(0,0,500,300)
-            box_rect.center=(width//2,height//2)
-
-            pygame.draw.rect(screen,(40,40,40),box_rect,border_radius=20)
-            pygame.draw.rect(screen,(200,200,200),box_rect,3,border_radius=20)
-
-            text=font_big.render(finalDisplay,True,finalColor)
-            screen.blit(text,text.get_rect(center=(box_rect.centerx,box_rect.top+80)))
-
-            play_again_btn=pygame.Rect(0,0,180,60)
-            menu_btn=pygame.Rect(0,0,180,60)
-
-            play_again_btn.center=(box_rect.centerx-110,box_rect.bottom-80)
-            menu_btn.center=(box_rect.centerx+110,box_rect.bottom-80)
-
-            pygame.draw.rect(screen,(70,130,180),play_again_btn,border_radius=10)
-            pygame.draw.rect(screen,(180,70,70),menu_btn,border_radius=10)
-
-            txt1=font_small.render("Play Again",True,"white")
-            txt2=font_small.render("Leaderboard",True,"white")
-
-            screen.blit(txt1,txt1.get_rect(center=play_again_btn.center))
-            screen.blit(txt2,txt2.get_rect(center=menu_btn.center))
+                #def draw(self,mouse_pos,mouse_pressed):
+                # play again and main menu buttons
+                popup.draw()
+                text=font_big.render(finalDisplay,True,finalColor)
+                screen.blit(text,text.get_rect(center=(box_rect.centerx,box_rect.top+80)))
+                BTN_play_again.draw(mouse_pos,mouse_pressed)
+                main_menu.draw(mouse_pos,mouse_pressed)
 
         pygame.display.flip()
         clock.tick(tickrate)

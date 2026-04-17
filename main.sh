@@ -13,15 +13,15 @@ init_files(){
 handle_locked_users(){
 	local username=$@
 	local line=$(grep -E "^${username},[0-9]+$" .failed_logins.csv)
-
-	if [[ $? -ne 0 ]]
+	local found_user=$?
+	if ((found_user!=0))
 	then 
 		return 1
 	fi
 
 	local time_now=$(date +%s)
 	local time_then=$(echo "$line" | cut -d ',' -f 2)
-	if (( time_now - time_then >= lock_time ))
+	if ((time_now-time_then>=lock_time))
 	then 
 		sed -i "/^$line$/d" .failed_logins.csv
 		return 1
@@ -66,7 +66,7 @@ is_valid_username(){
 handle_three_attempts(){
 	local attempts=3
 	local username="$@"
-	while (( attempts > 0 ))
+	while ((attempts>0))
 	do
 		local pwd
 	    read -r -s -p "Enter pwd: " pwd
@@ -77,8 +77,8 @@ handle_three_attempts(){
 			echo -e "${GREEN}User ${username} Logged in successfully ${endl}${RESET}"
 			break
 		fi
-		(( attempts-- ))
-		if (( attempts == 0 ))
+		((attempts--))
+		if ((attempts==0))
 		then
 			echo -e "${RED}Ok clearly you don't know the password... Locking account for $lock_time seconds${RESET}"
 			echo "${username},$(date +%s)" >> .failed_logins.csv
@@ -144,4 +144,4 @@ done
 echo -e "${GREY}--LOGIN SUCCESSFUL--${endl}"
 echo -e "Starting game...${RESET}"
 
-#python game.py "${u1}" "${u2}"
+python game.py "${u1}" "${u2}"

@@ -3,15 +3,15 @@ import numpy as np
 import math
 import time
 
-from classGame import *
-from design_elements import *
+from games.classGame import *
+from games.design_elements import *
 
 def cap(x,low,high):
     return max(low,min(x,high))
     
 def play(screen,clock,font,username1,username2):
     username1,username2=username2,username1
-    play_again=False #to check if user wants to play again after a game ends
+    exit_status="main_menu" #to check if user wants to play again or go to main menu after a game ends
     name_of_winner=None
     name_of_loser=None
 
@@ -113,10 +113,10 @@ def play(screen,clock,font,username1,username2):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                menu = False
+                return("","","incomplete")
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    menu = False
+                    return("","","incomplete")
             if event.type == pygame.MOUSEBUTTONUP:
                 mousepos=event.pos
                 if ClassicButton.clicked(mousepos):
@@ -292,11 +292,18 @@ def play(screen,clock,font,username1,username2):
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
-                running = False
+                if not game_over:
+                    return("","","incomplete")
+                else:
+                    return(name_of_winner,name_of_loser,"main_menu")
+
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    running = False
+                    if not game_over:
+                        return("","","incomplete")
+                    else:
+                        return(name_of_winner,name_of_loser,"main_menu")
             
             if not game_over:
                 if event.type == pygame.MOUSEBUTTONUP:
@@ -306,7 +313,7 @@ def play(screen,clock,font,username1,username2):
             else:
                 if event.type==pygame.MOUSEBUTTONUP:
                     if BTN_play_again.clicked(mouse_pos):
-                        play_again=True
+                        exit_status="play_game"
                         running=False #go back to game.py, (stats will be updated and shown there)
                     if main_menu.clicked(mouse_pos):
                         running=False      # go back to game.py, (stats will be updated and shown there)
@@ -380,4 +387,5 @@ def play(screen,clock,font,username1,username2):
 
         pygame.display.flip()
         clock.tick(tickrate)
-    return name_of_winner,name_of_loser,play_again
+
+    return name_of_winner,name_of_loser,exit_status

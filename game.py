@@ -10,6 +10,7 @@ username2=sys.argv[2]
 #
 
 #game imports
+sys.path.insert(0,"./games")
 import games.tictactoe as ttt
 import games.connect4 as cf	
 import games.othello as oth
@@ -329,7 +330,13 @@ c4button=Button(screen,c4Rect,"Connect4","menu")
 othbutton=Button(screen,othRect,"Othello","menu")
 #
 
-play_again=True
+#def show_main_menu():
+#    pygame.display.init()
+#    global screen
+#    screen=pygame.display.set_mode((round(2*width/3),round(2*height/3)))
+
+
+exit_status="play_game"
 while gameName!="exit":
     screen.fill((20,20,20))
 
@@ -354,24 +361,27 @@ while gameName!="exit":
             pos=event.pos
             if tttbutton.clicked(pos):
                 gameName="tictactoe"
-                while play_again:
-                    winner,loser,play_again=ttt.play(screen,clock,font,username1,username2)
-                    update()
+                while exit_status=="play_game":
+                    winner,loser,exit_status=ttt.play(screen,clock,font,username1,username2)
+                    if not (exit_status=="incomplete"):
+                        update()
                     
             if c4button.clicked(pos):
                 gameName="connect4"
                 while play_again:
-                    winner,loser,play_again=cf.play(screen,clock,font,username1,username2)
-                    update()
+                    winner,loser,exit_status=cf.play(screen,clock,font,username1,username2)
+                    if not (exit_status=="incomplete"):
+                        update()
 
 
             if othbutton.clicked(pos):
                 gameName="othello"
                 while play_again:
-                    winner,loser,play_again=oth.play(screen,clock,font,username1,username2)
-                    update()
+                    winner,loser,exit_status=oth.play(screen,clock,font,username1,username2)
+                    if not (exit_status=="incomplete"):    
+                        update()
                         
-    if not play_again:
+    if not (exit_status=="play_game"):
         show_leaderboard()
         play_again=True
         screen=pygame.display.set_mode((width,height))

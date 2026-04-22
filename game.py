@@ -1,5 +1,5 @@
 from datetime import date
-import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 from games.design_elements import *
 
@@ -10,10 +10,9 @@ username2=sys.argv[2]
 #
 
 #game imports
-sys.path.insert(0,"./games")
-import tictactoe as ttt
-import connect4 as cf	
-import othello as oth
+import games.tictactoe as ttt
+import games.connect4 as cf	
+import games.othello as oth
 #
 
 #centers the window
@@ -195,6 +194,14 @@ def show_leaderboard():
     Cbutton=Button(screen,Connect4Rect,"Connect4","leaderboard")
 
     #
+
+
+
+    #number of times each game is played
+    plays={"tictactoe":0,"connect4":0,"othello":0}
+    #number of wins of each player
+    total_wins={}
+
     #Button init - def __init__(self,screen,rect,text,mode):
     while running:
         screen.fill((30,30,30))
@@ -257,6 +264,54 @@ def show_leaderboard():
                 if metric and gameName:
                     command="bash leaderboard.sh "+metric+" "+gameName
                     os.system(command)
+
+                    #storing game freq
+                    with open('.game_frequencies.csv', mode='r') as file:
+                        lines=file.readlines()
+                    for line in lines:
+                        plays[line.split(sep=',')[0].strip()]=int(line.split(sep=',')[1].strip())
+                    #
+                    #storing wins of top 5 players
+                    with open('.top5.txt', mode='r') as file:
+                        lines=file.readlines()
+                        for line in lines:
+                            total_wins[line.split()[0].strip()]=int(line.split()[1].strip())
+                    #plot settings
+                    fig, ax=plt.subplots(2,1, figsize=(8,8))
+                    fig.canvas.manager.set_window_title("Game Stats")
+                    plt.subplots_adjust(hspace=0.4)
+                    fig.patch.set_facecolor('#FFF0F3')
+
+                    #plot1: bar graph for game freq
+                    bar_colors = ['#6C8EBF', '#93C47D', '#F6B26B']
+                    ax[1].barh(plays.keys(),plays.values(), height=0.3, color=bar_colors)
+                    ax[1].set_ylabel("Game",weight='bold')
+                    ax[1].set_xlabel("Number of Plays",weight='bold')
+                    ax[1].set_title("Number of Plays per Game", fontsize=16, weight='bold', pad=15)
+                        # Hide the right and top spines
+                    ax[1].spines.right.set_visible(False)
+                    ax[1].spines.top.set_visible(False)
+
+
+                    #plot2: pie chart for top 5 players
+                    colors = ['#6C8EBF', '#93C47D', '#F6B26B', '#E06666', '#8E7CC3']
+                    value,label,pct= ax[0].pie(
+                        total_wins.values(), 
+                        labels=total_wins.keys(),
+                        autopct='%1.1f%%',
+                        wedgeprops={'edgecolor': 'white'},
+                        colors=colors
+                    )
+                        #bold the labels
+                    for text in label:
+                        text.set_fontweight('bold')
+                    for text in pct:
+                        text.set_color('white')
+                    ax[0].set_title("Top 5 Players by Wins", fontsize=16, weight='bold', pad=15)
+                    
+                    plt.show()
+
+
 
         pygame.display.flip()
       

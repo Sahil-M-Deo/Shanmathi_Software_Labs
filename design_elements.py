@@ -84,28 +84,23 @@ class Button:
         self.border_thickness=border_thickness
         self.selected=False
     def draw(self,mouse_pos,mouse_pressed):
-        if self.mode=="menu":
-            offset=0
-            if self.rect.collidepoint(mouse_pos):
-                if mouse_pressed:
-                    self.fill_color=(60,60,60)
-                    offset=2
-                else:
-                    self.fill_color=(100,100,120)
+        offset=0
+        if self.mouse_over(mouse_pos):
+            if mouse_pressed:
+                self.fill_color=(60,60,60)
+                offset=2
             else:
-                self.fill_color=(70,70,70)
-
-            self.border_color=(150,150,150)
-            r=self.rect.move(0,offset)
-
-        elif self.mode=="leaderboard":
-            if self.selected:
                 self.fill_color=(100,100,120)
+        else:
+            self.fill_color=(70,70,70)
+
+        self.border_color=(150,150,150)
+        r=self.rect.move(0,offset)
+
+        if self.mode=="leaderboard":
+            if self.selected:
+                self.fill_color="red"
                 self.border_color=(220,220,220)
-            else:
-                self.fill_color=(70,70,70)
-                self.border_color=(150,150,150)
-            r=self.rect
 
         pygame.draw.rect(self.screen,self.fill_color,r,border_radius=self.border_radius)
         pygame.draw.rect(self.screen,self.border_color,r,self.border_thickness,border_radius=self.border_radius)
@@ -113,7 +108,7 @@ class Button:
         txt=self.font.render(self.text,True,"white")
         self.screen.blit(txt,txt.get_rect(center=r.center))
     
-    def clicked(self,mouse_pos):
+    def mouse_over(self,mouse_pos):
         return self.rect.collidepoint(mouse_pos)
 
 class JaggedLine:

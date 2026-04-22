@@ -182,18 +182,19 @@ def show_leaderboard():
     TTTRect=pygame.Rect(400,100,200,50)
     OthelloRect=pygame.Rect(400,200,200,50)
     Connect4Rect=pygame.Rect(400,300,200,50)
+    ChartsRect=pygame.Rect(400,400,200,50)
 
     global font
-    Wbutton=Button(screen,WinRect,"Wins","leaderboard")
-    Lbutton=Button(screen,LoseRect,"Losses","leaderboard")
-    Rbutton=Button(screen,RatioRect,"Ratio","leaderboard")
-    Ebutton=Button(screen,ExitRect,"Exit","leaderboard")
+    Wbutton=Button(screen,WinRect,"Wins",mode="leaderboard")
+    Lbutton=Button(screen,LoseRect,"Losses",mode="leaderboard")
+    Rbutton=Button(screen,RatioRect,"Ratio",mode="leaderboard")
+    Ebutton=Button(screen,ExitRect,"Exit",mode="menu")
     
-    #def __init__(self,screen,rect,text,fill_color,border_color,mode):
-    TTTbutton=Button(screen,TTTRect,"TicTacToe","leaderboard")
-    Obutton=Button(screen,OthelloRect,"Othello","leaderboard")
-    Cbutton=Button(screen,Connect4Rect,"Connect4","leaderboard")
-
+    #__init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15)
+    TTTbutton=Button(screen,TTTRect,"TicTacToe",mode="leaderboard")
+    Obutton=Button(screen,OthelloRect,"Othello",mode="leaderboard")
+    Cbutton=Button(screen,Connect4Rect,"Connect4",mode="leaderboard")
+    Charts_button=Button(screen,ChartsRect,"See Charts",mode="menu")
     #
 
 
@@ -218,7 +219,7 @@ def show_leaderboard():
         TTTbutton.draw(mouse_pos,mouse_pressed)
         Obutton.draw(mouse_pos,mouse_pressed)
         Cbutton.draw(mouse_pos,mouse_pressed)
-
+        Charts_button.draw(mouse_pos,mouse_pressed)
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 running=False
@@ -226,36 +227,36 @@ def show_leaderboard():
             if event.type==pygame.MOUSEBUTTONUP:
                 mousepos=event.pos
                 
-                if Wbutton.clicked(mousepos):
-                    for i in Wbutton,Lbutton,Rbutton,Ebutton:
+                if Wbutton.mouse_over(mousepos):
+                    for i in Wbutton,Lbutton,Rbutton:
                         i.selected=False
                     Wbutton.selected=True
                     metric="wins"
-                elif Lbutton.clicked(mousepos):
-                    for i in Wbutton,Lbutton,Rbutton,Ebutton:
+                elif Lbutton.mouse_over(mousepos):
+                    for i in Wbutton,Lbutton,Rbutton:
                         i.selected=False
                     Lbutton.selected=True
                     metric="losses"
-                elif Rbutton.clicked(mousepos):
-                    for i in Wbutton,Lbutton,Rbutton,Ebutton:
+                elif Rbutton.mouse_over(mousepos):
+                    for i in Wbutton,Lbutton,Rbutton:
                         i.selected=False
                     Rbutton.selected=True
                     metric="ratio"
-                elif Ebutton.clicked(mousepos):
+                elif Ebutton.mouse_over(mousepos):
                     running=False
 
                 #game selection
-                elif TTTbutton.clicked(mousepos):
+                elif TTTbutton.mouse_over(mousepos):
                     for i in TTTbutton,Obutton,Cbutton:
                         i.selected=False
                     TTTbutton.selected=True
                     gameName="tictactoe"
-                elif Obutton.clicked(mousepos):
+                elif Obutton.mouse_over(mousepos):
                     for i in TTTbutton,Obutton,Cbutton:
                         i.selected=False
                     Obutton.selected=True
                     gameName="othello"
-                elif Cbutton.clicked(mousepos):
+                elif Cbutton.mouse_over(mousepos):
                     for i in TTTbutton,Obutton,Cbutton:
                         i.selected=False
                     Cbutton.selected=True
@@ -265,7 +266,12 @@ def show_leaderboard():
                 if metric and gameName:
                     command="bash leaderboard.sh "+metric+" "+gameName
                     os.system(command)
+                    metric=None
+                    gameName=None
+                    for i in TTTbutton,Obutton,Cbutton,Wbutton,Lbutton,Rbutton:
+                        i.selected=False
 
+                if Charts_button.mouse_over(mouse_pos):
                     #storing game freq
                     with open('.game_frequencies.csv', mode='r') as file:
                         lines=file.readlines()
@@ -359,14 +365,14 @@ while gameName!="exit":
 
         if event.type==pygame.MOUSEBUTTONUP:
             pos=event.pos
-            if tttbutton.clicked(pos):
+            if tttbutton.mouse_over(pos):
                 gameName="tictactoe"
                 while exit_status=="play_game":
                     winner,loser,exit_status=ttt.play(screen,clock,font,username1,username2)
                     if not (exit_status=="incomplete"):
                         update()
                     
-            if c4button.clicked(pos):
+            if c4button.mouse_over(pos):
                 gameName="connect4"
                 while play_again:
                     winner,loser,exit_status=cf.play(screen,clock,font,username1,username2)
@@ -374,7 +380,7 @@ while gameName!="exit":
                         update()
 
 
-            if othbutton.clicked(pos):
+            if othbutton.mouse_over(pos):
                 gameName="othello"
                 while play_again:
                     winner,loser,exit_status=oth.play(screen,clock,font,username1,username2)

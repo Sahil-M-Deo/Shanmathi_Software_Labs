@@ -25,6 +25,11 @@ CUTE_RED=(180, 70, 70)
 YELLOW=(255,220,0)
 RED=(255,0,0)
 BLUE=(0,0,220)
+GREEN=(0,150,0)
+WHITE=(255,255,255)
+MID_WHITE=(125,125,125)
+MILKY_COFFEE=(222,184,135)
+DARK_COFFEE=(139,69,19)
 #
 
 def fit_font(text,rect):
@@ -214,7 +219,7 @@ class Timer:
 
         if not self.active:
             overlay=pygame.Surface((r.width,r.height),pygame.SRCALPHA)
-            overlay.fill((0,0,0,120))
+            overlay.fill((*BLACK,120))
             self.screen.blit(overlay,(r.x,r.y))
 
         txt=f"{self.remaining:.1f}"

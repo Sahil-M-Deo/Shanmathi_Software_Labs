@@ -1,17 +1,24 @@
 from datetime import date
-import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
-from design_elements import *
-import csv
-#centers the window
-import os
-os.environ['SDL_VIDEO_CENTERED']='1'
-#
+from games.design_elements import *
 
 #taking command line arguments
 import sys
 username1=sys.argv[1]
 username2=sys.argv[2]
+#
+
+#game imports
+sys.path.insert(0,"./games")
+import tictactoe as ttt
+import connect4 as cf	
+import othello as oth
+#
+
+#centers the window
+import os
+os.environ['SDL_VIDEO_CENTERED']='1'
 #
 
 print("Welcome to the game, " + username1 + " and " + username2 + "!")
@@ -37,9 +44,10 @@ clock=pygame.time.Clock()
 #modifies .stats_{gameName}.csv to update the number of wins and losses for each player
 #.stats_{gameName}.csv is of form username,number of wins, number of losses, and Win/Loss ratio
 def update_stats():
+    if(winner=="TIE"):
+        return 
     filename=".stats_"+gameName+".csv"
     os.system("touch " + filename) 
-    
     lines=None #list of lines
     with open(filename, "r") as f:
         lines=f.readlines()
@@ -105,6 +113,8 @@ def update_game_frequencies():
 #modifies .user_total_wins.csv to update the number of times each user has won
 #user_total_wins is of form: username, number of wins
 def update_total_wins():
+    if(winner=="TIE"):
+        return 
     filename=".user_total_wins.csv"
     os.system("touch " + filename)
     lines=None
@@ -128,18 +138,13 @@ def update_total_wins():
         f.writelines(lines)
     #
 
-#After each game concludes, game.py must append a row to history.csv containing: Winner, Loser, Date, and Game name.
+#After each game concludes, game.py must append a row to .history.csv containing: Winner, Loser, Date, and Game name.
 def update_history():
     import time
     t=time.localtime()
     date=str(t.tm_year)+"-"+str(t.tm_mon)+"-"+str(t.tm_mday)
-    with open("history.csv", "a") as f:
+    with open(".history.csv", "a") as f:
         f.write(winner + "," + loser + "," + date + "," + gameName + "\n")
-
-sys.path.insert(0,"./games")
-import tictactoe as ttt
-import connect4 as cf	
-import othello as oth
 
 #variables to be updated after each game
 winner=None
@@ -184,19 +189,13 @@ def show_leaderboard():
     Rbutton=Button(screen,RatioRect,"Ratio","leaderboard")
     Ebutton=Button(screen,ExitRect,"Exit","leaderboard")
     
-	#def __init__(self,screen,rect,text,fill_color,border_color,mode):
+    #def __init__(self,screen,rect,text,fill_color,border_color,mode):
     TTTbutton=Button(screen,TTTRect,"TicTacToe","leaderboard")
     Obutton=Button(screen,OthelloRect,"Othello","leaderboard")
     Cbutton=Button(screen,Connect4Rect,"Connect4","leaderboard")
 
     #
     #Button init - def __init__(self,screen,rect,text,mode):
-
-    #number of times each game is played
-    plays={"tictactoe":0,"connect4":0,"othello":0}
-    #number of wins of each player
-    total_wins={}
-
     while running:
         screen.fill((30,30,30))
         font=pygame.font.Font(None,36)
@@ -258,55 +257,6 @@ def show_leaderboard():
                 if metric and gameName:
                     command="bash leaderboard.sh "+metric+" "+gameName
                     os.system(command)
-                    
-                    #storing game freq
-                    with open('.game_frequencies.csv', mode='r') as file:
-                        lines=file.readlines()
-                    for line in lines:
-                        plays[line.split(sep=',')[0].strip()]=int(line.split(sep=',')[1].strip())
-                    #
-                    #storing wins of top 5 players
-                    with open('.top5.txt', mode='r') as file:
-                        lines=file.readlines()
-                        for line in lines:
-                            total_wins[line.split()[0].strip()]=int(line.split()[1].strip())
-                    #plot settings
-                    fig, ax=plt.subplots(2,1, figsize=(8,8))
-                    fig.canvas.manager.set_window_title("Game Stats")
-                    plt.subplots_adjust(hspace=0.4)
-                    fig.patch.set_facecolor('#FFF0F3')
-
-                    #plot1: bar graph for game freq
-                    bar_colors = ['#6C8EBF', '#93C47D', '#F6B26B']
-                    ax[1].barh(plays.keys(),plays.values(), height=0.3, color=bar_colors)
-                    ax[1].set_ylabel("Game",weight='bold')
-                    ax[1].set_xlabel("Number of Plays",weight='bold')
-                    ax[1].set_title("Number of Plays per Game", fontsize=16, weight='bold', pad=15)
-                        # Hide the right and top spines
-                    ax[1].spines.right.set_visible(False)
-                    ax[1].spines.top.set_visible(False)
-
-
-                    #plot2: pie chart for top 5 players
-                    colors = ['#6C8EBF', '#93C47D', '#F6B26B', '#E06666', '#8E7CC3']
-                    value,label,pct= ax[0].pie(
-                        total_wins.values(), 
-                        labels=total_wins.keys(),
-                        autopct='%1.1f%%',
-                        wedgeprops={'edgecolor': 'white'},
-                        colors=colors
-                    )
-                        #bold the labels
-                    for text in label:
-                        text.set_fontweight('bold')
-                    for text in pct:
-                        text.set_color('white')
-                    ax[0].set_title("Top 5 Players by Wins", fontsize=16, weight='bold', pad=15)
-                    
-                    plt.show()
-
-
-
 
         pygame.display.flip()
       
@@ -353,7 +303,6 @@ while gameName!="exit":
                     winner,loser,play_again=ttt.play(screen,clock,font,username1,username2)
                     update()
                     
-
             if c4button.clicked(pos):
                 gameName="connect4"
                 while play_again:
@@ -366,6 +315,7 @@ while gameName!="exit":
                 while play_again:
                     winner,loser,play_again=oth.play(screen,clock,font,username1,username2)
                     update()
+                        
     if not play_again:
         show_leaderboard()
         play_again=True

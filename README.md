@@ -4,7 +4,7 @@ A multi-user game hub built using **Bash, Python, and Pygame**, with authenticat
 
 ---
 ##How to setup the game hub
-- run `pip install numpy pygame matplotlib` on terminal
+- run `pip install numpy pygame-ce matplotlib` on terminal
 
 ##How to Play
 - Run `bash main.sh` on terminal in hub folder

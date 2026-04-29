@@ -16,7 +16,7 @@ partial: $(MAIN).tex $(IMAGES)
 	pdflatex $(MAIN).tex
 
 clean:
-	rm -f *.aux *.bbl *.blg *.log *.out *.toc $(MAIN).pdf
+	rm -f *.aux *.bbl *.blg *.log *.out *.toc
 
 open:
 	xdg-open $(MAIN).pdf

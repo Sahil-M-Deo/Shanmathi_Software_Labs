@@ -29,11 +29,10 @@ pygame.display.set_caption("Game Hub")
 
 #display sizes
 info=pygame.display.Info()
-SCREEN_WIDTH=info.current_w
-SCREEN_HEIGHT=info.current_h
-SAHIL_WIDTH=1536
-SAHIL_HEIGHT=864
-screen=pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
+width=info.current_w
+height=info.current_h
+
+screen=pygame.display.set_mode((width,height))
 #
 
 #time setup
@@ -86,29 +85,29 @@ def toss():
     positions[-1]=end
     steps=len(positions)
 
-    total_time=6.5
+    total_time=2 #6.5
     seg_time=total_time/(steps)
 
     # -------- BAR SETUP --------
-    bar_w,bar_h=SAHIL_WIDTH/1.5,SAHIL_HEIGHT/7.5
-    bar_x,bar_y=SAHIL_WIDTH/2,SAHIL_HEIGHT/2
-    bar_rect=Rect(bar_x-bar_w/2,bar_y-bar_h/2,bar_w,bar_h)
+    bar_w,bar_h=width/1.5,height/7.5
+    bar_x,bar_y=width/2,height/2
+    bar_rect=pygame.rect.Rect(bar_x-bar_w/2,bar_y-bar_h/2,bar_w,bar_h)
     
     #Player name boxes
-    box_w,box_h=200,80
+    box_w,box_h=scale_w(200),scale_h(80)
 
-    left_box_rect=Rect(bar_x-bar_w/2-250,bar_y-box_h/2,box_w,box_h)
-    right_box_rect=Rect(bar_x+bar_w/2+50,bar_y-box_h/2,box_w,box_h)
+    left_box_rect=pygame.rect.Rect(bar_x-bar_w/2-scale_w(250),bar_y-box_h/2,box_w,box_h)
+    right_box_rect=pygame.rect.Rect(bar_x+bar_w/2+scale_w(50),bar_y-box_h/2,box_w,box_h)
     #def __init__(self,screen,rect,text="",fill_color=GRAY_2,border_color=DULL_WHITE,border_thickness=3,border_radius=15):
     left_box=Box(screen,left_box_rect,username1,fill_color=BLACK,border_color=BLACK,font_color=TOSS_RED)
     right_box=Box(screen,right_box_rect,username2,fill_color=BLACK,border_color=BLACK,font_color=TOSS_BLUE)
 
-    overlay=pygame.Surface(Coord(SAHIL_WIDTH,SAHIL_HEIGHT),pygame.SRCALPHA)
+    overlay=pygame.Surface((width,height),pygame.SRCALPHA)
     overlay.fill((*BLACK,180))
     
     font=pygame.font.Font(None,100)
     text=font.render("LET'S TOSS!",True,WHITE)
-    text_rect=text.get_rect(center=Coord(bar_x,bar_y))
+    text_rect=text.get_rect(center=(bar_x,bar_y))
 
     start_time=time.time()
     while time.time()-start_time<2:
@@ -123,11 +122,11 @@ def toss():
     running=True
     
     screen.fill(GRAY_0)
-    FNP_surf=pygame.Surface(Coord(bar_w,bar_h),pygame.SRCALPHA) #Fluid and Partition surface
-    bar_surf=pygame.Surface(Coord(bar_w,bar_h),pygame.SRCALPHA) #The Bar surface acting as a transparent window
+    FNP_surf=pygame.Surface((bar_w,bar_h),pygame.SRCALPHA) #Fluid and Partition surface
+    bar_surf=pygame.Surface((bar_w,bar_h),pygame.SRCALPHA) #The Bar surface acting as a transparent window
     bar_surf.fill((*BLACK,255))  #fully opaque black
-    pygame.draw.rect(bar_surf,(*BLACK,0),Rect(0,0,bar_w,bar_h),border_radius=25) #the transparent window
-    pygame.draw.rect(bar_surf,WHITE,Rect(0,0,bar_w,bar_h),5,border_radius=25) #border
+    pygame.draw.rect(bar_surf,(*BLACK,0),(0,0,bar_w,bar_h),border_radius=25) #the transparent window
+    pygame.draw.rect(bar_surf,WHITE,(0,0,bar_w,bar_h),5,border_radius=25) #border
     #
     
     while running:
@@ -139,11 +138,11 @@ def toss():
         split_frac=np.clip((1-f)*positions[idx]+f*positions[idx+1],0,1)
         split=round(split_frac*bar_w)
         
-        FNP_surf.fill(TOSS_RED,Rect(0,0,split,bar_h))
-        FNP_surf.fill(TOSS_BLUE,Rect(split,0,bar_w-split,bar_h))
+        FNP_surf.fill(TOSS_RED,(0,0,split,bar_h))
+        FNP_surf.fill(TOSS_BLUE,(split,0,bar_w-split,bar_h))
         
         #draw white partition of thickness 5
-        pygame.draw.line(FNP_surf,WHITE,Coord(split,0),Coord(split,bar_h),5)
+        pygame.draw.line(FNP_surf,WHITE,(split,0),(split,bar_h),5)
 
         FNP_surf.blit(bar_surf,(0,0))
         screen.blit(FNP_surf,bar_rect[:2])
@@ -157,7 +156,7 @@ def toss():
     
     winner_name=username2 if end==0 else username1
     text=font.render(winner_name+' wins the toss!',True,TOSS_RED if end==1 else TOSS_BLUE)
-    text_rect=text.get_rect(center=Coord(bar_x,bar_y))
+    text_rect=text.get_rect(center=(bar_x,bar_y))
 
     start_time=time.time()
     while time.time()-start_time<2:
@@ -168,11 +167,11 @@ def toss():
     return end
 
 def time_control_menu():
-    ClassicRect=Rect(0,0,300,100)
-    ClassicRect.center=Coord(SAHIL_WIDTH/2,2*SAHIL_HEIGHT/5)
+    ClassicRect=pygame.rect.Rect(0,0,scale_w(300),scale_h(100))
+    ClassicRect.center=(width/2,2*height/5)
     ClassicButton=Button(screen,ClassicRect,"Classic","menu")
-    BlitzRect=Rect(0,0,300,100)
-    BlitzRect.center=Coord(SAHIL_WIDTH/2,3*SAHIL_HEIGHT/5)
+    BlitzRect=pygame.rect.Rect(0,0,scale_w(300),scale_h(100))
+    BlitzRect.center=(width/2,3*height/5)
     BlitzButton=Button(screen,BlitzRect,"Blitz","menu")
     tickrate=60
     menu=True
@@ -185,10 +184,10 @@ def time_control_menu():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit() #LARISSA
+                return "main_menu"
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    pygame.quit() #LARISSA
+                    return "main_menu"
 
             if event.type == pygame.MOUSEBUTTONUP:
                 if ClassicButton.mouse_over(mouse_pos):
@@ -313,11 +312,11 @@ def update_data():
     
 def main_menu(screen,clock):
     #button setup
-    playRect=Rect(0,0,300,100)
-    playRect.center=Coord(SAHIL_WIDTH/2,2*SAHIL_HEIGHT/5)
+    playRect=pygame.rect.Rect(0,0,scale_w(300),scale_h(100))
+    playRect.center=(width/2,2*height/5)
 
-    leaderRect=Rect(0,0,300,100)
-    leaderRect.center=Coord(SAHIL_WIDTH/2,3*SAHIL_HEIGHT/5)
+    leaderRect=pygame.rect.Rect(0,0,scale_w(300),scale_h(100))
+    leaderRect.center=(width/2,3*height/5)
 
     playButton=Button(screen,playRect,"Play","menu")
     leaderButton=Button(screen,leaderRect,"Leaderboard","menu")
@@ -356,7 +355,7 @@ def main_menu(screen,clock):
 
 def show_leaderboard():
     global screen
-    screen=pygame.display.set_mode((round(2*SAHIL_WIDTH/3),round(2*SAHIL_HEIGHT/3)))
+    screen=pygame.display.set_mode((round(2*width/3),round(2*height/3)))
 
     pygame.display.set_caption("Leaderboard")
     
@@ -365,17 +364,17 @@ def show_leaderboard():
     gameName=None
 
     #Buttons setup
-    button_width=200
-    button_height=50
-    WinRect=Rect(100,100,button_width,button_height)
-    LoseRect=Rect(100,200,button_width,button_height)
-    RatioRect=Rect(100,300,button_width,button_height)
-    ExitRect=Rect(100,400,button_width,button_height)
+    button_width=scale_w(200)
+    button_height=scale_h(50)
+    WinRect=pygame.rect.Rect(scale_w(100),scale_h(100),button_width,button_height)
+    LoseRect=pygame.rect.Rect(scale_w(100),scale_h(200),button_width,button_height)
+    RatioRect=pygame.rect.Rect(scale_w(100),scale_h(300),button_width,button_height)
+    ExitRect=pygame.rect.Rect(scale_w(100),scale_h(400),button_width,button_height)
 
-    TTTRect=Rect(400,100,button_width,button_height)
-    OthelloRect=Rect(400,200,button_width,button_height)
-    Connect4Rect=Rect(400,300,button_width,button_height)
-    ChartsRect=Rect(400,400,button_width,button_height)
+    TTTRect=pygame.rect.Rect(scale_w(400),scale_h(100),button_width,button_height)
+    OthelloRect=pygame.rect.Rect(scale_w(400),scale_h(200),button_width,button_height)
+    Connect4Rect=pygame.rect.Rect(scale_w(400),scale_h(300),button_width,button_height)
+    ChartsRect=pygame.rect.Rect(scale_w(400),scale_h(400),button_width,button_height)
 
     #Button constructor -> def __init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15):
     Lbutton=Button(screen,LoseRect,"Losses",mode="leaderboard")
@@ -513,12 +512,12 @@ def show_leaderboard():
       
 #menu buttons
 #Buttondef __init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15):
-tttRect=Rect(0,0,300,100)
-tttRect.center=Coord(SAHIL_WIDTH/2,200)
-c4Rect=Rect(0,0,300,100)
-c4Rect.center=Coord(SAHIL_WIDTH/2,350)
-othRect=Rect(0,0,300,100)
-othRect.center=Coord(SAHIL_WIDTH/2,500)
+tttRect=pygame.rect.Rect(0,0,scale_w(300),scale_h(100))
+tttRect.center=(width/2,scale_h(200))
+c4Rect=pygame.rect.Rect(0,0,scale_w(300),scale_h(100))
+c4Rect.center=(width/2,scale_h(350))
+othRect=pygame.rect.Rect(0,0,scale_w(300),scale_h(100))
+othRect.center=(width/2,scale_h(500))
 tttbutton=Button(screen,tttRect,"TicTacToe","menu")
 c4button=Button(screen,c4Rect,"Connect4","menu")
 othbutton=Button(screen,othRect,"Othello","menu")
@@ -555,33 +554,43 @@ while main_loop:
                         gameName="tictactoe"
                         while exit_status=="play_game":
                             time_control=time_control_menu()
-                            turn=toss()
-                            winner,loser,exit_status=ttt.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
-                            if not (exit_status=="incomplete"):
-                                update_data()
+                            if time_control!="main_menu":
+                                turn=toss()
+                                winner,loser,exit_status=ttt.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
+                                if not (exit_status=="incomplete"):
+                                    update_data()
+                            else:
+                                exit_status="main_menu"
                             
                     if c4button.mouse_over(mouse_pos):
                         gameName="connect4"
                         while exit_status=="play_game":
                             time_control=time_control_menu()
-                            turn=toss()
-                            winner,loser,exit_status=cf.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
-                            if not (exit_status=="incomplete"):
-                                update_data()
+                            if time_control!="main_menu":
+                                turn=toss()
+                                winner,loser,exit_status=cf.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
+                                if not (exit_status=="incomplete"):
+                                    update_data()
+                            else:
+                                exit_status="main_menu"
 
 
                     if othbutton.mouse_over(mouse_pos):
                         gameName="othello"
                         while exit_status=="play_game":
                             time_control=time_control_menu()
-                            turn=toss()
-                            winner,loser,exit_status=oth.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
-                            if not (exit_status=="incomplete"):    
-                                update_data()
+                            if time_control!="main_menu":
+                                turn=toss()
+                                winner,loser,exit_status=oth.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
+                                if not (exit_status=="incomplete"):    
+                                    update_data()
+                            else:
+                                exit_status="main_menu"
+
             pygame.display.flip()
             clock.tick(60)
 
     if choice=="leaderboard":
         show_leaderboard()
-        screen=pygame.display.set_mode(Coord(SAHIL_WIDTH,SAHIL_HEIGHT))
+        screen=pygame.display.set_mode((width,height))
         

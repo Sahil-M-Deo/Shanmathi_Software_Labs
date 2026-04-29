@@ -1,4 +1,3 @@
-from datetime import date
 import matplotlib.pyplot as plt
 import numpy as np
 from games.design_elements import *
@@ -21,15 +20,13 @@ import os
 os.environ['SDL_VIDEO_CENTERED']='1'
 #
 
-print("Welcome to the game, " + username1 + " and " + username2 + "!")
-gameName=None
-
 #pygame setup
 import pygame
 pygame.init()
 pygame.font.init()
 font = pygame.font.Font(None, 50) #(font style,size)
 pygame.display.set_caption("Game Hub")
+#
 
 #display sizes
 info=pygame.display.Info()
@@ -38,18 +35,176 @@ height=info.current_h
 screen=pygame.display.set_mode((width,height))
 #
 
+#time setup
 clock=pygame.time.Clock()
+import time
 #
 
-#modifies .stats_{gameName}.csv to update the number of wins and losses for each player
-#.stats_{gameName}.csv is of form username,number of wins, number of losses, and Win/Loss ratio
+#current game
+gameName=None
+#
+
+def toss():
+    def gen_path(start,end,steps,noise_scale=0.02):
+        t=np.linspace(0,1,steps)
+        base=start+(end-start)*(3*t**2-2*t**3)
+
+        noise=np.random.uniform(-noise_scale,noise_scale,steps)
+        for i in range(1,steps):
+            noise[i]=0.8*noise[i-1]+0.2*noise[i]
+
+        seg=base+0.3*noise
+        return np.clip(seg,0,1)
+
+    start=0.5
+    end=round(np.random.rand())
+
+    path1=[0.1,0.8,0.4,0.9,0.05,1.0] #dramatic dance
+    path2=[0.7,0.3,0.6,0.4,0.8,0.96,1.0] #Balanced battle
+
+    if round(np.random.rand()):
+        targets=path1
+    else:
+        targets=path2
+
+    if(end==0):
+        for i in range(len(targets)):
+            targets[i]=1-targets[i]
+
+    positions=[]
+    curr=start
+    base_steps=50
+    speed=1.0
+
+    for next in targets:
+        steps=round(base_steps/speed)
+        positions.extend(gen_path(curr,next,steps))
+        curr=next
+        speed*=1.05
+
+    positions[-1]=end
+    steps=len(positions)
+
+    total_time=6.5
+    seg_time=total_time/(steps)
+
+    # -------- BAR SETUP --------
+    bar_w,bar_h=width/1.5,height/7.5
+    bar_x,bar_y=width/2,height/2
+    bar_rect=Rect(bar_x-bar_w/2,bar_y-bar_h/2,bar_w,bar_h)
+    
+    #Player name boxes
+    box_w,box_h=200,80
+
+    left_box_rect=Rect(bar_x-bar_w/2-250,bar_y-box_h/2,box_w,box_h)
+    right_box_rect=Rect(bar_x+bar_w/2+50,bar_y-box_h/2,box_w,box_h)
+    #def __init__(self,screen,rect,text="",fill_color=GRAY_2,border_color=DULL_WHITE,border_thickness=3,border_radius=15):
+    left_box=Box(screen,left_box_rect,username1,fill_color=BLACK,border_color=BLACK,font_color=TOSS_RED)
+    right_box=Box(screen,right_box_rect,username2,fill_color=BLACK,border_color=BLACK,font_color=TOSS_BLUE)
+
+    overlay=pygame.Surface(Coord(width,height),pygame.SRCALPHA)
+    overlay.fill((*BLACK,180))
+    
+    font=pygame.font.Font(None,100)
+    text=font.render("LET'S TOSS!",True,WHITE)
+    text_rect=text.get_rect(center=Coord(bar_x,bar_y))
+
+    start_time=time.time()
+    while time.time()-start_time<2:
+        screen.blit(overlay,(0,0))
+        screen.blit(text,text_rect)
+        pygame.display.flip()
+        clock.tick(60)
+
+    #ANIMATION SETUP
+    idx=0
+    seg_start=time.time()
+    running=True
+    
+    screen.fill(GRAY_0)
+    FNP_surf=pygame.Surface(Coord(bar_w,bar_h),pygame.SRCALPHA) #Fluid and Partition surface
+    bar_surf=pygame.Surface(Coord(bar_w,bar_h),pygame.SRCALPHA) #The Bar surface acting as a transparent window
+    bar_surf.fill((*BLACK,255))  #fully opaque black
+    pygame.draw.rect(bar_surf,(*BLACK,0),Rect(0,0,bar_w,bar_h),border_radius=25) #the transparent window
+    pygame.draw.rect(bar_surf,WHITE,Rect(0,0,bar_w,bar_h),5,border_radius=25) #border
+    #
+    
+    while running:
+        TIME=time.time()-seg_start
+        idx=round(np.clip(TIME//seg_time,0,steps-2))
+        f=np.clip((TIME-idx*seg_time)/seg_time,0,1)
+        f=np.clip(f*f*(3-2*f),0,1) #smoother easing
+
+        split_frac=np.clip((1-f)*positions[idx]+f*positions[idx+1],0,1)
+        split=round(split_frac*bar_w)
+        
+        FNP_surf.fill(TOSS_RED,Rect(0,0,split,bar_h))
+        FNP_surf.fill(TOSS_BLUE,Rect(split,0,bar_w-split,bar_h))
+        
+        #draw white partition of thickness 5
+        pygame.draw.line(FNP_surf,WHITE,Coord(split,0),Coord(split,bar_h),5)
+
+        FNP_surf.blit(bar_surf,(0,0))
+        screen.blit(FNP_surf,bar_rect[:2])
+        left_box.draw()
+        right_box.draw()
+        pygame.display.flip()
+        clock.tick(60)
+
+        if idx>=steps-2:
+            running=False
+    
+    winner_name=username2 if end==0 else username1
+    text=font.render(winner_name+' wins the toss!',True,TOSS_RED if end==1 else TOSS_BLUE)
+    text_rect=text.get_rect(center=Coord(bar_x,bar_y))
+
+    start_time=time.time()
+    while time.time()-start_time<2:
+        screen.blit(overlay,(0,0))
+        screen.blit(text,text_rect)
+        pygame.display.flip()
+        clock.tick(60)
+    return end
+
+def time_control_menu():
+    ClassicRect=Rect(0,0,300,100)
+    ClassicRect.center=Coord(width/2,2*height/5)
+    ClassicButton=Button(screen,ClassicRect,"Classic","menu")
+    BlitzRect=Rect(0,0,300,100)
+    BlitzRect.center=Coord(width/2,3*height/5)
+    BlitzButton=Button(screen,BlitzRect,"Blitz","menu")
+    tickrate=60
+    menu=True
+    while menu:
+        screen.fill(BLACK)
+        mouse_pos=pygame.mouse.get_pos()
+        mouse_pressed=pygame.mouse.get_pressed()[0] #(left, middle, right) mouse button states - for us [0] is relevant
+        ClassicButton.draw(mouse_pos,mouse_pressed)
+        BlitzButton.draw(mouse_pos,mouse_pressed)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit() #LARISSA
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit() #LARISSA
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                mousepos=event.pos
+                if ClassicButton.mouse_over(mousepos):
+                    return "classic"
+                if BlitzButton.mouse_over(mousepos):
+                    return "blitz"
+        pygame.display.flip()
+        clock.tick(tickrate)
+
 def update_stats():
     if(winner=="TIE"):
         return 
-    filename=".stats_"+gameName+".csv"
-    os.system("touch " + filename) 
+    filepath=".user_files/.stats_"+gameName+".csv"
+    os.system("touch " + filepath) 
     lines=None #list of lines
-    with open(filename, "r") as f:
+    with open(filepath, "r") as f:
         lines=f.readlines()
         winnerfound=False
         loserfound=False
@@ -79,17 +234,17 @@ def update_stats():
         #
         
     #overwrite the file with the updated stats
-    with open(filename, "w") as f:
+    with open(filepath, "w") as f:
         f.writelines(lines)
     #
     
 #game_frequencies is of form: game name, number of times played
 #modifies .game_frequencies.csv to update the number of times each game has been played
 def update_game_frequencies():
-    filename=".game_frequencies.csv"
-    os.system("touch " + filename) 
+    filepath=".user_files/.game_frequencies.csv"
+    os.system("touch " + filepath) #create the file if it doesn't exist
     lines=None
-    with open(filename, "r") as f:
+    with open(filepath, "r") as f:
         lines=f.readlines()
         found=False
         for i,line in enumerate(lines):
@@ -105,7 +260,7 @@ def update_game_frequencies():
         #
     
     #Overwrite the file with the updated frequencies
-    with open(filename, "w") as f:
+    with open(filepath, "w") as f:
         f.writelines(lines)
     #
 #
@@ -115,10 +270,10 @@ def update_game_frequencies():
 def update_total_wins():
     if(winner=="TIE"):
         return 
-    filename=".user_total_wins.csv"
-    os.system("touch " + filename)
+    filepath=".user_files/.user_total_wins.csv"
+    os.system("touch " + filepath)
     lines=None
-    with open(filename, "r") as f:
+    with open(filepath, "r") as f:
         lines=f.readlines()
         found=False
         for i,line in enumerate(lines):
@@ -134,16 +289,15 @@ def update_total_wins():
         #
     
     #Overwrite the file with the updated frequencies
-    with open(filename, "w") as f:
+    with open(filepath, "w") as f:
         f.writelines(lines)
     #
 
 #After each game concludes, game.py must append a row to .history.csv containing: Winner, Loser, Date, and Game name.
 def update_history():
-    import time
     t=time.localtime()
     date=str(t.tm_year)+"-"+str(t.tm_mon)+"-"+str(t.tm_mday)
-    with open(".history.csv", "a") as f:
+    with open(".user_files/.history.csv", "a") as f:
         f.write(winner + "," + loser + "," + date + "," + gameName + "\n")
 
 #variables to be updated after each game
@@ -174,52 +328,52 @@ def show_leaderboard():
     gameName=None
 
     #Buttons setup
-    WinRect=pygame.Rect(100,100,200,50)
-    LoseRect=pygame.Rect(100,200,200,50)
-    RatioRect=pygame.Rect(100,300,200,50)
-    ExitRect=pygame.Rect(100,400,200,50)
+    button_width=200
+    button_height=50
+    WinRect=Rect(100,100,button_width,button_height)
+    LoseRect=Rect(100,200,button_width,button_height)
+    RatioRect=Rect(100,300,button_width,button_height)
+    ExitRect=Rect(100,400,button_width,button_height)
 
-    TTTRect=pygame.Rect(400,100,200,50)
-    OthelloRect=pygame.Rect(400,200,200,50)
-    Connect4Rect=pygame.Rect(400,300,200,50)
-    ChartsRect=pygame.Rect(400,400,200,50)
+    TTTRect=Rect(400,100,button_width,button_height)
+    OthelloRect=Rect(400,200,button_width,button_height)
+    Connect4Rect=Rect(400,300,button_width,button_height)
+    ChartsRect=Rect(400,400,button_width,button_height)
 
-    global font
-    Wbutton=Button(screen,WinRect,"Wins",mode="leaderboard")
+    #Button constructor -> def __init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15):
     Lbutton=Button(screen,LoseRect,"Losses",mode="leaderboard")
     Rbutton=Button(screen,RatioRect,"Ratio",mode="leaderboard")
     Ebutton=Button(screen,ExitRect,"Exit",mode="menu")
-    
-    #__init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15)
+    Wbutton=Button(screen,WinRect,"Wins",mode="leaderboard")
     TTTbutton=Button(screen,TTTRect,"TicTacToe",mode="leaderboard")
     Obutton=Button(screen,OthelloRect,"Othello",mode="leaderboard")
     Cbutton=Button(screen,Connect4Rect,"Connect4",mode="leaderboard")
     Charts_button=Button(screen,ChartsRect,"See Charts",mode="menu")
     #
 
-
-
-    #number of times each game is played
+    #number of times each game is played for charts
     plays={"tictactoe":0,"connect4":0,"othello":0}
-    #number of wins of each player
+    #number of wins of each player for charts
     total_wins={}
 
-    #Button init - def __init__(self,screen,rect,text,mode):
     while running:
         screen.fill((30,30,30))
+        global font
         font=pygame.font.Font(None,36)
         #def draw(self,mouse_pos,mouse_pressed):
         mouse_pos=pygame.mouse.get_pos()
         mouse_pressed=pygame.mouse.get_pressed()[0]
+        #
+        
         Wbutton.draw(mouse_pos,mouse_pressed)
         Lbutton.draw(mouse_pos,mouse_pressed)
         Rbutton.draw(mouse_pos,mouse_pressed)
         Ebutton.draw(mouse_pos,mouse_pressed)
-
         TTTbutton.draw(mouse_pos,mouse_pressed)
         Obutton.draw(mouse_pos,mouse_pressed)
         Cbutton.draw(mouse_pos,mouse_pressed)
         Charts_button.draw(mouse_pos,mouse_pressed)
+
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 running=False
@@ -284,7 +438,7 @@ def show_leaderboard():
                         for line in lines:
                             total_wins[line.split()[0].strip()]=int(line.split()[1].strip())
                     #plot settings
-                    fig, ax=plt.subplots(2,1, figsize=(8,8))
+                    fig, ax=plt.subplots(2,1)
                     fig.canvas.manager.set_window_title("Game Stats")
                     plt.subplots_adjust(hspace=0.4)
                     fig.patch.set_facecolor('#FFF0F3')
@@ -318,19 +472,16 @@ def show_leaderboard():
                     
                     plt.show()
 
-
-
         pygame.display.flip()
       
 #menu buttons
-#Button init - def __init__(self,screen,rect,text,mode):
-tttRect=pygame.Rect(0,0,300,100)
-tttRect.center=(round(width/2),200)
-c4Rect=pygame.Rect(0,0,300,100)
-c4Rect.center=(round(width/2),350)
-othRect=pygame.Rect(0,0,300,100)
-othRect.center=(round(width/2),500)
-
+#Buttondef __init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15):
+tttRect=Rect(0,0,300,100)
+tttRect.center=Coord(width/2,200)
+c4Rect=Rect(0,0,300,100)
+c4Rect.center=Coord(width/2,350)
+othRect=Rect(0,0,300,100)
+othRect.center=Coord(width/2,500)
 tttbutton=Button(screen,tttRect,"TicTacToe","menu")
 c4button=Button(screen,c4Rect,"Connect4","menu")
 othbutton=Button(screen,othRect,"Othello","menu")
@@ -341,11 +492,9 @@ othbutton=Button(screen,othRect,"Othello","menu")
 #    global screen
 #    screen=pygame.display.set_mode((round(2*width/3),round(2*height/3)))
 
-
 exit_status="play_game"
 while gameName!="exit":
-    screen.fill((20,20,20))
-
+    screen.fill(BLACK)
     #mouse data
     mouse_pos=pygame.mouse.get_pos()
     mouse_pressed=pygame.mouse.get_pressed() #(left, middle, right) mouse button states - for us [0] is relevant
@@ -363,34 +512,39 @@ while gameName!="exit":
             if event.key==pygame.K_ESCAPE:
                 gameName="exit"
 
+        blitz_turn_time=10
         if event.type==pygame.MOUSEBUTTONUP:
-            pos=event.pos
-            if tttbutton.mouse_over(pos):
+            if tttbutton.mouse_over(mouse_pos):
                 gameName="tictactoe"
                 while exit_status=="play_game":
-                    winner,loser,exit_status=ttt.play(screen,clock,font,username1,username2)
+                    time_control=time_control_menu()
+                    turn=toss()
+                    winner,loser,exit_status=ttt.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
                     if not (exit_status=="incomplete"):
                         update()
                     
-            if c4button.mouse_over(pos):
+            if c4button.mouse_over(mouse_pos):
                 gameName="connect4"
-                while play_again:
-                    winner,loser,exit_status=cf.play(screen,clock,font,username1,username2)
+                while exit_status=="play_game":
+                    time_control=time_control_menu()
+                    turn=toss()
+                    winner,loser,exit_status=cf.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
                     if not (exit_status=="incomplete"):
                         update()
 
 
-            if othbutton.mouse_over(pos):
+            if othbutton.mouse_over(mouse_pos):
                 gameName="othello"
-                while play_again:
-                    winner,loser,exit_status=oth.play(screen,clock,font,username1,username2)
+                while exit_status=="play_game":
+                    time_control=time_control_menu()
+                    turn=toss()
+                    winner,loser,exit_status=oth.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
                     if not (exit_status=="incomplete"):    
                         update()
                         
     if not (exit_status=="play_game"):
         show_leaderboard()
         play_again=True
-        screen=pygame.display.set_mode((width,height))
         os.environ['SDL_VIDEO_CENTERED']='1'
     pygame.display.flip()
     clock.tick(60)

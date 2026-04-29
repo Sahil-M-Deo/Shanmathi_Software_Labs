@@ -8,11 +8,11 @@ RESET="\e[0m"
 GREY="\e[90m"
 
 init_files(){
-	touch ".users.tsv" ".failed_logins.csv"
+	touch ".user_files/.users.tsv" ".system_files/.failed_logins.csv"
 }
 handle_locked_users(){
 	local username=$@
-	local line=$(grep -E "^${username},[0-9]+$" .failed_logins.csv)
+	local line=$(grep -E "^${username},[0-9]+$" ".system_files/.failed_logins.csv")
 	local found_user=$?
 	if ((found_user!=0))
 	then 
@@ -23,7 +23,7 @@ handle_locked_users(){
 	local time_then=$(echo "$line" | cut -d ',' -f 2)
 	if ((time_now-time_then>=lock_time))
 	then 
-		sed -i "/^$line$/d" .failed_logins.csv
+		sed -i "/^$line$/d" ".system_files/.failed_logins.csv"
 		return 1
 	else
 		echo -e "${YELLOW}Please wait for $(( lock_time - (time_now - time_then) )) seconds before trying again${RESET}"
@@ -33,7 +33,7 @@ handle_locked_users(){
 
 username_exists(){
 	local name="$@"
-	grep -q "^${name}${tab}" .users.tsv
+	grep -q "^${name}${tab}" ".user_files/.users.tsv"
 	return $?
 }
 
@@ -48,13 +48,13 @@ create_user(){
 	read -r -s -p "Enter password: " pwd
 	echo ""
 	local hash_pwd=$(hash "$pwd")
-	echo "${name}${tab}${hash_pwd}" >> .users.tsv
+	echo "${name}${tab}${hash_pwd}" >> ".user_files/.users.tsv"
 	echo -e "${endl}${GREEN}User '${name}' created successfully!${RESET}${endl}"
 }
 
 auth_user(){
 	local line="$@"
-	grep -Fxq "$line" .users.tsv
+	grep -Fxq "$line" ".user_files/.users.tsv"
 	return $?
 }
 
@@ -81,7 +81,7 @@ handle_three_attempts(){
 		if ((attempts==0))
 		then
 			echo -e "${RED}Ok clearly you don't know the password... Locking account for $lock_time seconds${RESET}"
-			echo "${username},$(date +%s)" >> .failed_logins.csv
+			echo "${username},$(date +%s)" >> ".system_files/.failed_logins.csv"
 			return 0
 		else
 			echo -e "${RED}wrong password, try again!${RESET}"

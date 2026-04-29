@@ -27,8 +27,8 @@ gameName="$2"
 echo "Sorted by ${metric} for ${gameName}:"
 echo
 echo "Username,Wins,Losses,Win/Loss Ratio" > temp.csv
-filename=".stats_${gameName}.csv"
-touch ${filename} #create filename
+filepath=".user_files/.stats_${gameName}.csv"
+touch ${filepath} #create file if not exist
 
 if [[ "$metric" == "wins" ]]; then
 	preprocess ${filename} | sort -t ',' -k2,2nr -k3,3n | postprocess >> temp.csv
@@ -40,7 +40,7 @@ fi
 
 column -t -s ',' temp.csv
 
-sort -t ',' -k2,2nr -k3,3n .user_total_wins.csv | head -5| sed 's/,/ /g' > .top5.txt
+sort -t ',' -k2,2nr -k3,3n .user_files/.user_total_wins.csv | head -5| sed 's/,/ /g' > .user_files/.top5.txt
 
 rm temp.csv
 

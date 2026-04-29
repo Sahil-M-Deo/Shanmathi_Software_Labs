@@ -8,6 +8,7 @@ RESET="\e[0m"
 GREY="\e[90m"
 
 init_files(){
+	mkdir -p .user_files .system_files
 	touch ".user_files/.users.tsv" ".system_files/.failed_logins.csv"
 }
 handle_locked_users(){

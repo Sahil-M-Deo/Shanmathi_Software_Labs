@@ -21,11 +21,9 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
     
     #display sizes
     info=pygame.display.Info()
-    SCREEN_WIDTH=info.current_w
-    SCREEN_HEIGHT=info.current_h
-    SAHIL_WIDTH=1536
-    SAHIL_HEIGHT=864
-    screen=pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
+    width=info.current_w
+    height=info.current_h
+    
     tickrate=60
     bg_color=BLACK
     #
@@ -73,26 +71,26 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
             return True
         return False
     
-    game = Game(checkWin,7,7,Size(105))
-    x_start=Size(SAHIL_WIDTH/2-game.boardWIDTH*game.cell_size/2)
-    x_end=Size(SAHIL_WIDTH/2+game.boardWIDTH*game.cell_size/2)
-    y_start=Size(SAHIL_HEIGHT-game.boardHEIGHT*game.cell_size+69)/2
-    y_end=Size(SAHIL_HEIGHT+game.boardHEIGHT*game.cell_size)/2
-    r=Size(game.cell_size*0.415)
+    game = Game(checkWin,7,7,scale_h(105))
+    x_start=(width/2-game.boardWIDTH*game.cell_size/2)
+    x_end=(width/2+game.boardWIDTH*game.cell_size/2)
+    y_start=(height-game.boardHEIGHT*game.cell_size+scale_h(69))/2
+    y_end=(height+game.boardHEIGHT*game.cell_size)/2
+    r=(game.cell_size*0.415)
     filled=0 #number of filled cells
     #
 
-    BOARD_SURFACE=pygame.Surface(Coord(game.boardWIDTH*game.cell_size,game.boardHEIGHT*game.cell_size),pygame.SRCALPHA)
+    BOARD_SURFACE=pygame.Surface((game.boardWIDTH*game.cell_size,game.boardHEIGHT*game.cell_size),pygame.SRCALPHA)
     BOARD_SURFACE.fill((*BLACK,0))
-    pygame.draw.rect(BOARD_SURFACE,BOARD_BLUE,Rect(0,0,game.boardWIDTH*game.cell_size,game.boardHEIGHT*game.cell_size))
+    pygame.draw.rect(BOARD_SURFACE,BOARD_BLUE,(0,0,game.boardWIDTH*game.cell_size,game.boardHEIGHT*game.cell_size))
     for row in range(game.boardHEIGHT):
             for col in range(game.boardWIDTH):
                 cx=col*game.cell_size+game.cell_size/2
                 cy=row*game.cell_size+game.cell_size/2
-                pygame.draw.circle(BOARD_SURFACE,(*BLACK,0),Coord(cx,cy),int(r))
+                pygame.draw.circle(BOARD_SURFACE,(*BLACK,0),(cx,cy),r)
 
     def draw_board():
-        screen.blit(BOARD_SURFACE,Coord(x_start,y_start))
+        screen.blit(BOARD_SURFACE,(x_start,y_start))
 
     red_disc=None
     yellow_disc=None
@@ -108,19 +106,19 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         red_disc_img=pygame.image.load("images/red_disc.png").convert_alpha()
         yellow_disc_img=pygame.image.load("images/yellow_disc.png").convert_alpha()
 
-        red_disc=pygame.transform.smoothscale(red_disc_img,Coord(2*r,2*r))
+        red_disc=pygame.transform.smoothscale(red_disc_img,(2*r,2*r))
         red_disc.set_alpha(255)
 
-        yellow_disc=pygame.transform.smoothscale(yellow_disc_img,Coord(2*r,2*r))
+        yellow_disc=pygame.transform.smoothscale(yellow_disc_img,(2*r,2*r))
         yellow_disc.set_alpha(255)
 
-        hover_yellow_disc=pygame.transform.smoothscale(yellow_disc_img,Coord(2*r,2*r))
+        hover_yellow_disc=pygame.transform.smoothscale(yellow_disc_img,(2*r,2*r))
         hover_yellow_disc.set_alpha(135)
 
-        hover_red_disc=pygame.transform.smoothscale(red_disc_img,Coord(2*r,2*r))
+        hover_red_disc=pygame.transform.smoothscale(red_disc_img,(2*r,2*r))
         hover_red_disc.set_alpha(135)
 
-    init_discs(int(r))
+    init_discs(r)
 
     def draw_disc(surface,color,coords,hover=False):
         cx,cy=coords
@@ -145,8 +143,8 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
             hover_color=YELLOW
         x_pos=x_start+col*game.cell_size+game.cell_size/2
         y_pos=y_start+row*game.cell_size+game.cell_size/2
-        draw_disc(screen,hover_color,Coord(x_pos,y_start-game.cell_size/2))
-        draw_disc(screen,hover_color,Coord(x_pos,y_pos),hover=True)
+        draw_disc(screen,hover_color,(x_pos,y_start-game.cell_size/2))
+        draw_disc(screen,hover_color,(x_pos,y_pos),hover=True)
 
     running=True
     col_filled=np.zeros(game.boardWIDTH,dtype=int) #number of filled cells in each column
@@ -155,14 +153,16 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         #init timers
         left_x=x_start-1.5*game.cell_size
         right_x=x_end+0.6*game.cell_size
-        T1=Timer(screen,font,left_x,y_start-40,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
-        T2=Timer(screen,font,right_x,y_start-40,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
+        T1=Timer(screen,font,left_x,y_start-scale_h(40),0.9*game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
+        T2=Timer(screen,font,right_x,y_start-scale_h(40),0.9*game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
         #
 
     discs=[]
     def move(row,col):
         nonlocal filled
         filled+=1
+        name_color[not game.turn]=GREEN
+        name_color[game.turn]=WHITE
         TIME=time.time()
         col_filled[col]+=1
         
@@ -172,9 +172,9 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         centre_y=y_start+row*game.cell_size+game.cell_size/2
 
         if(game.turn):
-            disc_info=(*Coord(centre_x,centre_y),TIME,RED)
+            disc_info=(centre_x,centre_y,TIME,RED)
         else:
-            disc_info=(*Coord(centre_x,centre_y),TIME,YELLOW)
+            disc_info=(centre_x,centre_y,TIME,YELLOW)
         discs.append(disc_info)
 
         if game_mode=="blitz":
@@ -220,19 +220,19 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
             finalColor="grey"
 
    #popup box
-    box_width=500
-    box_height=300
-    box_rect=Rect(0,0,box_width,box_height)
-    box_rect.center=Coord(SAHIL_WIDTH/2,SAHIL_HEIGHT/2)
+    box_width=scale_w(500)
+    box_height=scale_h(300)
+    box_rect=pygame.rect.Rect(0,0,box_width,box_height)
+    box_rect.center=(width/2,height/2)
     #
     
     #The two buttons
-    btn_w=180
-    btn_h=60
-    play_again_rect=Rect(0,0,btn_w,btn_h)
-    menu_rect=Rect(0,0,btn_w,btn_h)
-    play_again_rect.center=Coord(box_rect.centerx-110,box_rect.bottom-80)
-    menu_rect.center=(box_rect.centerx+110,box_rect.bottom-80)
+    btn_w=scale_w(180)
+    btn_h=scale_h(60)
+    play_again_rect=pygame.rect.Rect(0,0,btn_w,btn_h)
+    menu_rect=pygame.rect.Rect(0,0,btn_w,btn_h)
+    play_again_rect.center=(box_rect.centerx-scale_w(110),box_rect.bottom-scale_h(80))
+    menu_rect.center=(box_rect.centerx+scale_w(110),box_rect.bottom-scale_h(80))
     #
     
     #Box init: def __init__(self,screen,rect,text="",fill_color=GRAY_2,border_color=DULL_WHITE,border_thickness=3,border_radius=15):
@@ -249,7 +249,13 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
     most_recent_column=-1
 
     g=2500
-    fall_time=int(((game.boardHEIGHT*game.cell_size)*3/g)**0.5)
+    fall_time=(((game.boardHEIGHT*game.cell_size)*3/g)**0.5)
+
+    #username display
+    name1_rect=pygame.rect.Rect(0,0,3*game.cell_size,y_start//2)
+    name2_rect=pygame.rect.Rect(width-3*game.cell_size,0,3*game.cell_size,y_start//2)
+    name_color={True:GREEN,False:WHITE}
+
     #main game loop:
     while running:
         screen.fill(bg_color)
@@ -273,8 +279,15 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         if not game_over:
             if(0<=col<game.boardWIDTH):
                 row=game.boardHEIGHT-1-col_filled[col]
-                if TIME-most_recent_time>fall_time or most_recent_column!=col:                
+                if (TIME-most_recent_time)>fall_time or most_recent_column!=col:                
                     hover(row,col,game.turn)
+            
+            #displaying names of players:
+            name1_box=Box(screen,name1_rect,username1,BLACK,BLACK,2,0,name_color[True])
+            name2_box=Box(screen,name2_rect,username2,BLACK,BLACK,2,0,name_color[False])
+            name1_box.draw()
+            name2_box.draw()  
+
             # Board:
             draw_board()
                 
@@ -282,6 +295,11 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
                 game_over=True
                 end(-1)
         else:
+            #displaying names of players:
+            name1_box=Box(screen,name1_rect,username1,BLACK,BLACK,2,0,name_color[True])
+            name2_box=Box(screen,name2_rect,username2,BLACK,BLACK,2,0,name_color[False])
+            name1_box.draw()
+            name2_box.draw()  
             # Board:
             draw_board()
             if TIME-most_recent_time>fall_time:
@@ -292,7 +310,7 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
                 #play again and main menu buttons
                 popup.draw()
                 text=font_big.render(finalDisplay,True,finalColor)
-                screen.blit(text,text.get_rect(center=Coord(box_rect.centerx,box_rect.top+80)))
+                screen.blit(text,text.get_rect(center=(box_rect.centerx,box_rect.top+scale_h(80))))
                 BTN_play_again.draw(mouse_pos,mouse_pressed)
                 main_menu.draw(mouse_pos,mouse_pressed)
 
@@ -315,7 +333,7 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
             if not game_over:
                 if event.type == pygame.MOUSEBUTTONUP:
                     if col<game.boardWIDTH and col>=0 and col_filled[col]<game.boardHEIGHT:
-                        if TIME-most_recent_time>fall_time or most_recent_column!=col:
+                        if (TIME-most_recent_time)>fall_time or most_recent_column!=col:
                             row=game.boardHEIGHT-1-col_filled[col]
                             move(row,col)
                             most_recent_column=col

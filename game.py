@@ -413,9 +413,13 @@ def show_leaderboard():
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 running=False
-
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_ESCAPE:
+                    running=False
+                    
             if event.type==pygame.MOUSEBUTTONUP:
                 mousepos=event.pos
+                
                 
                 if Wbutton.mouse_over(mousepos):
                     for i in Wbutton,Lbutton,Rbutton:
@@ -462,6 +466,9 @@ def show_leaderboard():
                         i.selected=False
 
                 if Charts_button.mouse_over(mouse_pos):
+                    #updating stats using leaderboard.sh
+                    command="sort -t ',' -k2,2nr -k3,3n .user_files/.user_total_wins.csv | head -5| sed 's/,/ /g' > .user_files/.top5.txt"
+                    os.system(command)
                     #storing game freq
                     with open('.user_files/.game_frequencies.csv', mode='r') as file:
                         lines=file.readlines()

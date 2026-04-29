@@ -40,8 +40,6 @@ fi
 
 column -t -s ',' temp.csv
 
-sort -t ',' -k2,2nr -k3,3n .user_files/.user_total_wins.csv | head -5| sed 's/,/ /g' > .user_files/.top5.txt
-
 rm temp.csv
 
 

@@ -24,61 +24,61 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         if valid_cells:
             return None
         else:
-            number_of_white=np.sum(game.board==False)
-            number_of_black=np.sum(game.board==True)
-            if number_of_white>number_of_black:
+            number_of_black=np.sum(game.board==False)
+            number_of_white=np.sum(game.board==True)
+            if number_of_black>number_of_white:
                 return-1
-            if number_of_white<number_of_black:
+            if number_of_black<number_of_white:
                 return 1
-            if number_of_white==number_of_black:
+            if number_of_black==number_of_white:
                 return 0
 
-    game=Game(checkWin,8,8,Size(90))
+    game=Game(checkWin,8,8,scale_h(80))
 
-    x_start=Size(width/2-game.boardWIDTH*game.cell_size/2)
-    x_end=Size(width/2+game.boardWIDTH*game.cell_size/2)
-    y_start=Size(height-game.boardHEIGHT*game.cell_size)/2
-    y_end=Size(height+game.boardHEIGHT*game.cell_size)/2
-    r=Size(game.cell_size*0.4)
+    x_start=width/2-game.boardWIDTH*game.cell_size/2
+    x_end=width/2+game.boardWIDTH*game.cell_size/2
+    y_start = height//9
+    y_end = y_start+(game.boardHEIGHT*game.cell_size)
+    r=(game.cell_size*0.4)
 
-    game.board[3][3]=game.board[4][4]=False
-    game.board[3][4]=game.board[4][3]=True
+    game.board[3][4]=game.board[4][3]=False
+    game.board[3][3]=game.board[4][4]=True
 
     time_board=np.full((game.boardHEIGHT,game.boardWIDTH),0.0)
 
-    BOARD_SURFACE=pygame.Surface(Coord(x_end-x_start,y_end-y_start))
+    BOARD_SURFACE=pygame.Surface(((x_end-x_start),(y_end-y_start)))
     BOARD_SURFACE.fill(bg_color)
 
-    pygame.draw.rect(BOARD_SURFACE,MILKY_COFFEE,Rect(0,0,(x_end-x_start),(y_end-y_start)))
+    pygame.draw.rect(BOARD_SURFACE,MILKY_COFFEE,(0,0,(x_end-x_start),(y_end-y_start)))
 
     
     for i in np.linspace(0,x_end-x_start,game.boardWIDTH+1):
-        pygame.draw.line(BOARD_SURFACE,DARK_COFFEE,Coord(i,0),Coord(i,y_end-y_start),5)
+        pygame.draw.line(BOARD_SURFACE,DARK_COFFEE,(i,0),(i,y_end-y_start),5)
 
     for i in np.linspace(0,y_end-y_start,game.boardHEIGHT+1):
-        pygame.draw.line(BOARD_SURFACE,DARK_COFFEE,Coord(0,i),Coord(x_end-x_start,i),5)
+        pygame.draw.line(BOARD_SURFACE,DARK_COFFEE,(0,i),(x_end-x_start,i),5)
     
     
     opacity=150
-    GHOST_BLACK_SURFACE=pygame.Surface(Coord(2*r, 2*r), pygame.SRCALPHA)
-    pygame.draw.circle(GHOST_BLACK_SURFACE,(*BLACK,opacity),Coord(r,r),int(r))
+    GHOST_BLACK_SURFACE=pygame.Surface((2*r, 2*r), pygame.SRCALPHA)
+    pygame.draw.circle(GHOST_BLACK_SURFACE,(*BLACK,opacity),(r,r),r)
 
-    GHOST_WHITE_SURFACE=pygame.Surface(Coord(2*r, 2*r), pygame.SRCALPHA)
-    pygame.draw.circle(GHOST_WHITE_SURFACE,(*WHITE,opacity),Coord(r,r),int(r))
+    GHOST_WHITE_SURFACE=pygame.Surface((2*r, 2*r), pygame.SRCALPHA)
+    pygame.draw.circle(GHOST_WHITE_SURFACE,(*WHITE,opacity),(r,r),r)
     
     def hover(row, col):
         if 0 <= row < game.boardHEIGHT and 0 <= col < game.boardWIDTH:
-            cell_x = int(x_start + col * game.cell_size + 0.1*game.cell_size)
-            cell_y = int(y_start + row * game.cell_size + 0.1*game.cell_size)
+            cell_x = (x_start + col * game.cell_size + 0.1*game.cell_size)
+            cell_y = (y_start + row * game.cell_size + 0.1*game.cell_size)
 
             # 1. Cover cell with board color
-            pygame.draw.rect(screen, MILKY_COFFEE,Rect(cell_x, cell_y, game.cell_size*0.8, game.cell_size*0.8))
+            pygame.draw.rect(screen, MILKY_COFFEE,(cell_x, cell_y, game.cell_size*0.8, game.cell_size*0.8))
 
             # 3. Draw ghost disc
             if game.turn:
-                screen.blit(GHOST_WHITE_SURFACE,Coord(centreX[col]-r,centreY[row]-r))
+                screen.blit(GHOST_BLACK_SURFACE,(centreX[col]-r,centreY[row]-r))
             else:
-                screen.blit(GHOST_BLACK_SURFACE,Coord(centreX[col]-r,centreY[row]-r))
+                screen.blit(GHOST_WHITE_SURFACE,(centreX[col]-r,centreY[row]-r))
             
 
     def centre_x(col):
@@ -121,11 +121,13 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
                                 break
                     if score>0:
                         valid_cells.add((centreX[j],centreY[i]))
-
+    score={True:2,False:2}
     def move(row,col):
-        nonlocal filled,valid_cells,game
-        
+        nonlocal filled,valid_cells,game,score,name_color
+
         TIME=time.time()
+        name_color[not game.turn]=GREEN
+        name_color[game.turn]=WHITE
         filled+=1
         if game_mode=="blitz":
             if filled>1:
@@ -153,27 +155,30 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
                 (time_board[row:,col:]).diagonal(),
                 (time_board[row:,col::-1]).diagonal()
             ]
-
+            score[game.turn]+=1
             for index,arr in enumerate(directions):
+                
                 arr1=arr[1:]
                 time_board1=time_board_directions[index][1:]
                 arr1.setflags(write=1)
                 time_board1.setflags(write=1)
 
-                count=0
+                increase_score=0
                 change=False
 
                 for idx,val in enumerate(arr1):
                     if val==(not game.turn):
-                        count+=1
+                        increase_score+=1
                     if val==game.turn:
-                        if count>0:
+                        if increase_score>0:
                             change=True
                         break
                     if val is None:
                         break
 
                 if change:
+                    score[game.turn]+=increase_score
+                    score[not game.turn]-=increase_score
                     for idx,val in enumerate(arr1):
                         if val==(not game.turn):
                             arr1[idx]=game.turn
@@ -227,26 +232,27 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         left_x=x_start-1.5*game.cell_size
         right_x=x_end+0.6*game.cell_size
 
-        T1=Timer(screen,font,left_x,y_start,game.cell_size,game.cell_size*game.boardHEIGHT)
-        T2=Timer(screen,font,right_x,y_start,game.cell_size,game.cell_size*game.boardHEIGHT)
+        T1=Timer(screen,font,left_x,y_start,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
+        T2=Timer(screen,font,right_x,y_start,game.cell_size,game.cell_size*game.boardHEIGHT,blitz_turn_time)
 
     running=True
     flip_time=0.3
 
     #popup box
-    box_width=500
-    box_height=300
-    box_rect=Rect(0,0,box_width,box_height)
-    box_rect.center=Coord(width/2,height/2)
+    box_width=scale_w(500)
+    box_height=scale_h(300)
+    box_rect=pygame.rect.Rect(0,0,box_width,box_height)
+    box_rect.center=(width/2,height/2)
     #
     
     #The two buttons
-    btn_w=180
-    btn_h=60
-    play_again_rect=Rect(0,0,btn_w,btn_h)
-    menu_rect=Rect(0,0,btn_w,btn_h)
-    play_again_rect.center=Coord(box_rect.centerx-110,box_rect.bottom-80)
-    menu_rect.center=(box_rect.centerx+110,box_rect.bottom-80)
+    btn_w=scale_w(180)
+    btn_h=scale_h(60)
+
+    play_again_rect=pygame.rect.Rect(0,0,btn_w,btn_h)
+    menu_rect=pygame.rect.Rect(0,0,btn_w,btn_h)
+    play_again_rect.center=(box_rect.centerx-scale_w(110),box_rect.bottom-scale_h(80))
+    menu_rect.center=(box_rect.centerx+scale_w(110),box_rect.bottom-scale_h(80))
     #
     
     #Box init: def __init__(self,screen,rect,text="",fill_color=GRAY_2,border_color=DULL_WHITE,border_thickness=3,border_radius=15):
@@ -259,6 +265,15 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
     FADE_SURFACE.fill((*BLACK,180))
     font_big=pygame.font.Font(None,80)
     most_recent_time=0
+
+    #score board related
+    score1_rect=pygame.rect.Rect(x_start,0,2*game.cell_size,y_start)
+    score2_rect=pygame.rect.Rect(x_start+6*game.cell_size,0,2*game.cell_size,y_start)
+    #username display
+    name1_rect=pygame.rect.Rect(0,0,3*game.cell_size,y_start//2)
+    name2_rect=pygame.rect.Rect(width-3*game.cell_size,0,3*game.cell_size,y_start//2)
+    name_color={True:GREEN,False:WHITE}
+
 
     while running:
         screen.fill(bg_color)
@@ -304,10 +319,22 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
                         if main_menu.mouse_over(mouse_pos):
                             running=False      # go back to game.py, (stats will be updated and shown there)
 
-        screen.blit(BOARD_SURFACE,Coord(x_start,y_start))
+        score1_board=Box(screen,score1_rect,str(score[True]),GRAY_2,DULL_WHITE,2,0)
+        score2_board=Box(screen,score2_rect,str(score[False]),GRAY_2,DULL_WHITE,2,0)
+        score1_board.draw()
+        score2_board.draw()
+        
+        #displaying usernames:
+        name1_box=Box(screen,name1_rect,username1,BLACK,BLACK,2,0,name_color[True])
+        name2_box=Box(screen,name2_rect,username2,BLACK,BLACK,2,0,name_color[False])
+        name1_box.draw()
+        name2_box.draw()
+        screen.blit(BOARD_SURFACE,(x_start,y_start))
 
+
+        
         for a,b in valid_cells:
-            pygame.draw.circle(screen,(90, 90, 90),Coord(a,b),int(r/5))
+            pygame.draw.circle(screen,(90, 90, 90),(a,b),int(r/5))
 
         if not game_over:
             if 0<=row<game.boardHEIGHT and 0<=col<game.boardWIDTH:
@@ -318,30 +345,30 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
             for j in range(game.boardWIDTH):
                 if game.board[i][j]==True:
                     if (TIME-time_board[i][j])>flip_time:
-                        pygame.draw.circle(screen, "white", Coord(centreX[j],centreY[i]), int(r))
+                        pygame.draw.circle(screen, BLACK, (centreX[j],centreY[i]), int(r))
                     else:
                         frac=np.clip((TIME-time_board[i][j])/flip_time,0.01,0.99)
                         if frac<0.5:
-                            rect=Rect(0,0,2*r,2*r-frac*4*r)
-                            rect.center=(Coord(centreX[j],centreY[i]))
-                            pygame.draw.ellipse(screen,"black",rect)
+                            rect=pygame.rect.Rect(0,0,2*r,2*r-frac*4*r)
+                            rect.center=(centreX[j],centreY[i])
+                            pygame.draw.ellipse(screen,WHITE,rect)
                         else:
-                            rect=Rect(0,0,2*r,(frac-0.5)*4*r)
-                            rect.center=(Coord(centreX[j],centreY[i]))
-                            pygame.draw.ellipse(screen,"white",rect)
+                            rect=pygame.rect.Rect(0,0,2*r,(frac-0.5)*4*r)
+                            rect.center=(centreX[j],centreY[i])
+                            pygame.draw.ellipse(screen,BLACK,rect)
                 if game.board[i][j]==False:
                     if (TIME-time_board[i][j])>flip_time:
-                        pygame.draw.circle(screen, "black", Coord(centreX[j],centreY[i]), int(r))
+                        pygame.draw.circle(screen, WHITE, (centreX[j],centreY[i]), int(r))
                     else:
                         frac=np.clip((TIME-time_board[i][j])/flip_time,0.01,0.99)
                         if frac<0.5:
-                            rect=Rect(0,0,2*r,2*r-frac*4*r)
-                            rect.center=(Coord(centreX[j],centreY[i]))
-                            pygame.draw.ellipse(screen,"white",rect)
+                            rect=pygame.rect.Rect(0,0,2*r,2*r-frac*4*r)
+                            rect.center=(centreX[j],centreY[i])
+                            pygame.draw.ellipse(screen,BLACK,rect)
                         else:
-                            rect=Rect(0,0,2*r,(frac-0.5)*4*r)
-                            rect.center=(Coord(centreX[j],centreY[i]))
-                            pygame.draw.ellipse(screen,"black",rect)
+                            rect=pygame.rect.Rect(0,0,2*r,(frac-0.5)*4*r)
+                            rect.center=(centreX[j],centreY[i])
+                            pygame.draw.ellipse(screen,WHITE,rect)
 
         
         if game_mode=="blitz":
@@ -357,7 +384,7 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
                 # play again and main menu buttons
                 popup.draw()
                 text=font_big.render(finalDisplay,True,finalColor)
-                screen.blit(text,text.get_rect(center=(box_rect.centerx,box_rect.top+80)))
+                screen.blit(text,text.get_rect(center=(box_rect.centerx,box_rect.top+scale_h(80))))
                 BTN_play_again.draw(mouse_pos,mouse_pressed)
                 main_menu.draw(mouse_pos,mouse_pressed)
 

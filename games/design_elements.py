@@ -3,6 +3,7 @@ import pygame
 pygame.init()
 info=pygame.display.Info()
 HEIGHT=info.current_h
+WIDTH=info.current_w
 pygame.quit()
 #
 
@@ -32,72 +33,10 @@ DARK_COFFEE=(139,69,19)
 TOSS_BLUE=(100,100,250)
 TOSS_RED=(250,100,100)
 #
-
-def Rect(x,y,w,h): 
-    return pygame.Rect(int(Size(x)),int(Size(y)),int(Size(w)),int(Size(h))) #pygame.Rect(x,y,w,h)
-def Coord(x,y): 
-    return (int(Size(x)),int(Size(y))) #simple tuple of coordinates
-class Size:
-    SCALE=864 #sahil's screen height
-    def __init__(self,val):
-        if(isinstance(val,Size)):
-            self.val=val.val
-        else:
-            self.val=float(val)
-
-    def _wrap(self,x):
-        return Size(x)
-
-    def _get(self,other):
-        if isinstance(other,Size):
-            return other.val 
-        else:
-            return other
-
-    def __add__(self,other):
-        return self._wrap(self.val+self._get(other))
-
-    def __radd__(self,other):
-        return self.__add__(other)
-
-    def __sub__(self,other):
-        return self._wrap(self.val-self._get(other))
-
-    def __rsub__(self,other):
-        return self._wrap(self._get(other)-self.val)
-
-    def __neg__(self):
-        return self._wrap(-self.val)
-    def __mul__(self,other):
-        return self._wrap(self.val*self._get(other))
-
-    def __rmul__(self,other):
-        return self.__mul__(other)
-
-    def __truediv__(self,other):
-        return self._wrap(self.val/self._get(other))
-
-    def __rtruediv__(self,other):
-        return self._wrap(self._get(other)/self.val)
-    
-    def __floordiv__(self, other):
-        return self._wrap(self.val//self._get(other))
-    
-    def __rfloordiv__(self, other):
-        return self._wrap(self._get(other)//self.val)
-    
-    def __pow__(self,other):
-        return self._wrap(self.val**self._get(other))
-
-    def __rpow__(self,other):
-        return self._wrap(self._get(other)**self.val)
-
-    def px(self):
-        return round(HEIGHT*self.val/self.SCALE)
-
-    def __int__(self):
-        return self.px()
-
+def scale_h(height):
+    return round((height*HEIGHT)/864)
+def scale_w(width):
+    return round((width*WIDTH)/1536)
 def fit_font(text,rect):
     lo=1
     hi=100  # upper bound (adjust if needed)
@@ -209,7 +148,7 @@ class Timer:
     def __init__(self,screen,font,x,y,w,h,total_time):
         self.screen=screen
         self.font=font
-        self.rect=Rect(x,y,w,h)
+        self.rect=pygame.rect.Rect(x,y,w,h)
         self.total_time=total_time
         self.remaining=total_time
         self.active=False
@@ -240,7 +179,7 @@ class Timer:
         x=int(round(self.rect.x-(w-self.rect.width)/2))
         y=int(round(self.rect.y-(h-self.rect.height)/2))
 
-        r=Rect(x,y,w,h)
+        r=pygame.rect.Rect(x,y,w,h)
 
         if self.active:
             bg=GRAY_3

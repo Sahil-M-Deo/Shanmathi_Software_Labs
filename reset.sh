@@ -1,1 +1,1 @@
-rm -f .user_files/* .system_files.*
+rm -rf .user_files .system_files

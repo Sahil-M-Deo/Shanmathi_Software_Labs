@@ -30,9 +30,9 @@ pygame.display.set_caption("Game Hub")
 
 #display sizes
 info=pygame.display.Info()
-width=info.current_w
-height=info.current_h
-screen=pygame.display.set_mode((width,height))
+SCREEN_WIDTH=info.current_w
+SCREEN_HEIGHT=info.current_h
+screen=pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 #
 
 #time setup
@@ -89,8 +89,8 @@ def toss():
     seg_time=total_time/(steps)
 
     # -------- BAR SETUP --------
-    bar_w,bar_h=width/1.5,height/7.5
-    bar_x,bar_y=width/2,height/2
+    bar_w,bar_h=SCREEN_WIDTH/1.5,SCREEN_HEIGHT/7.5
+    bar_x,bar_y=SCREEN_WIDTH/2,SCREEN_HEIGHT/2
     bar_rect=Rect(bar_x-bar_w/2,bar_y-bar_h/2,bar_w,bar_h)
     
     #Player name boxes
@@ -102,7 +102,7 @@ def toss():
     left_box=Box(screen,left_box_rect,username1,fill_color=BLACK,border_color=BLACK,font_color=TOSS_RED)
     right_box=Box(screen,right_box_rect,username2,fill_color=BLACK,border_color=BLACK,font_color=TOSS_BLUE)
 
-    overlay=pygame.Surface(Coord(width,height),pygame.SRCALPHA)
+    overlay=pygame.Surface(Coord(SCREEN_WIDTH,SCREEN_HEIGHT),pygame.SRCALPHA)
     overlay.fill((*BLACK,180))
     
     font=pygame.font.Font(None,100)
@@ -168,10 +168,10 @@ def toss():
 
 def time_control_menu():
     ClassicRect=Rect(0,0,300,100)
-    ClassicRect.center=Coord(width/2,2*height/5)
+    ClassicRect.center=Coord(SCREEN_WIDTH/2,2*SCREEN_HEIGHT/5)
     ClassicButton=Button(screen,ClassicRect,"Classic","menu")
     BlitzRect=Rect(0,0,300,100)
-    BlitzRect.center=Coord(width/2,3*height/5)
+    BlitzRect.center=Coord(SCREEN_WIDTH/2,3*SCREEN_HEIGHT/5)
     BlitzButton=Button(screen,BlitzRect,"Blitz","menu")
     tickrate=60
     menu=True
@@ -190,10 +190,9 @@ def time_control_menu():
                     pygame.quit() #LARISSA
 
             if event.type == pygame.MOUSEBUTTONUP:
-                mousepos=event.pos
-                if ClassicButton.mouse_over(mousepos):
+                if ClassicButton.mouse_over(mouse_pos):
                     return "classic"
-                if BlitzButton.mouse_over(mousepos):
+                if BlitzButton.mouse_over(mouse_pos):
                     return "blitz"
         pygame.display.flip()
         clock.tick(tickrate)
@@ -305,21 +304,58 @@ winner=None
 loser=None
 #
 
-def update():
+def update_data():
     update_stats()
     update_game_frequencies()
     update_total_wins()
     update_history()
     
+def main_menu(screen,clock):
+    #button setup
+    playRect=Rect(0,0,300,100)
+    playRect.center=Coord(SCREEN_WIDTH/2,2*SCREEN_HEIGHT/5)
+
+    leaderRect=Rect(0,0,300,100)
+    leaderRect.center=Coord(SCREEN_WIDTH/2,3*SCREEN_HEIGHT/5)
+
+    playButton=Button(screen,playRect,"Play","menu")
+    leaderButton=Button(screen,leaderRect,"Leaderboard","menu")
+
+    tickrate=60
+    menu=True
+
+    while menu:
+        screen.fill(BLACK)
+
+        mouse_pos=pygame.mouse.get_pos()
+        mouse_pressed=pygame.mouse.get_pressed()[0]
+
+        playButton.draw(mouse_pos,mouse_pressed)
+        leaderButton.draw(mouse_pos,mouse_pressed)
+
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_ESCAPE:
+                    pygame.quit()
+
+            if event.type==pygame.MOUSEBUTTONUP:
+                mousepos=event.pos
+
+                if playButton.mouse_over(mousepos):
+                    return "play"
+
+                if leaderButton.mouse_over(mousepos):
+                    return "leaderboard"
+
+        pygame.display.flip()
+        clock.tick(tickrate)
+
 def show_leaderboard():
-    pygame.display.quit()
-
-    os.environ['SDL_VIDEO_CENTERED']='0'
-    os.environ['SDL_VIDEO_WINDOW_POS']="0,"+str(round(height/6))
-
-    pygame.display.init()
     global screen
-    screen=pygame.display.set_mode((round(2*width/3),round(2*height/3)))
+    screen=pygame.display.set_mode((round(2*SCREEN_WIDTH/3),round(2*SCREEN_HEIGHT/3)))
 
     pygame.display.set_caption("Leaderboard")
     
@@ -343,12 +379,12 @@ def show_leaderboard():
     #Button constructor -> def __init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15):
     Lbutton=Button(screen,LoseRect,"Losses",mode="leaderboard")
     Rbutton=Button(screen,RatioRect,"Ratio",mode="leaderboard")
-    Ebutton=Button(screen,ExitRect,"Exit",mode="menu")
+    Ebutton=Button(screen,ExitRect,"Main Menu",mode="menu")
     Wbutton=Button(screen,WinRect,"Wins",mode="leaderboard")
     TTTbutton=Button(screen,TTTRect,"TicTacToe",mode="leaderboard")
     Obutton=Button(screen,OthelloRect,"Othello",mode="leaderboard")
     Cbutton=Button(screen,Connect4Rect,"Connect4",mode="leaderboard")
-    Charts_button=Button(screen,ChartsRect,"See Charts",mode="menu")
+    Charts_button=Button(screen,ChartsRect,"Charts",mode="menu")
     #
 
     #number of times each game is played for charts
@@ -427,13 +463,13 @@ def show_leaderboard():
 
                 if Charts_button.mouse_over(mouse_pos):
                     #storing game freq
-                    with open('.game_frequencies.csv', mode='r') as file:
+                    with open('.user_files/.game_frequencies.csv', mode='r') as file:
                         lines=file.readlines()
                     for line in lines:
                         plays[line.split(sep=',')[0].strip()]=int(line.split(sep=',')[1].strip())
                     #
                     #storing wins of top 5 players
-                    with open('.top5.txt', mode='r') as file:
+                    with open('.user_files/.top5.txt', mode='r') as file:
                         lines=file.readlines()
                         for line in lines:
                             total_wins[line.split()[0].strip()]=int(line.split()[1].strip())
@@ -456,7 +492,7 @@ def show_leaderboard():
 
                     #plot2: pie chart for top 5 players
                     colors = ['#6C8EBF', '#93C47D', '#F6B26B', '#E06666', '#8E7CC3']
-                    value,label,pct= ax[0].pie(
+                    _,label,pct= ax[0].pie(
                         total_wins.values(), 
                         labels=total_wins.keys(),
                         autopct='%1.1f%%',
@@ -477,74 +513,74 @@ def show_leaderboard():
 #menu buttons
 #Buttondef __init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15):
 tttRect=Rect(0,0,300,100)
-tttRect.center=Coord(width/2,200)
+tttRect.center=Coord(SCREEN_WIDTH/2,200)
 c4Rect=Rect(0,0,300,100)
-c4Rect.center=Coord(width/2,350)
+c4Rect.center=Coord(SCREEN_WIDTH/2,350)
 othRect=Rect(0,0,300,100)
-othRect.center=Coord(width/2,500)
+othRect.center=Coord(SCREEN_WIDTH/2,500)
 tttbutton=Button(screen,tttRect,"TicTacToe","menu")
 c4button=Button(screen,c4Rect,"Connect4","menu")
 othbutton=Button(screen,othRect,"Othello","menu")
 #
 
-#def show_main_menu():
-#    pygame.display.init()
-#    global screen
-#    screen=pygame.display.set_mode((round(2*width/3),round(2*height/3)))
+main_loop=True
+while main_loop:
+    choice=main_menu(screen,clock)
 
-exit_status="play_game"
-while gameName!="exit":
-    screen.fill(BLACK)
-    #mouse data
-    mouse_pos=pygame.mouse.get_pos()
-    mouse_pressed=pygame.mouse.get_pressed() #(left, middle, right) mouse button states - for us [0] is relevant
-    #
+    if choice=="play":
+        exit_status="play_game"
+        while exit_status=="play_game":
+            screen.fill(BLACK)
+            #mouse data
+            mouse_pos=pygame.mouse.get_pos()
+            mouse_pressed=pygame.mouse.get_pressed() #(left, middle, right) mouse button states - for us [0] is relevant
+            #
 
-    tttbutton.draw(mouse_pos,mouse_pressed)
-    c4button.draw(mouse_pos,mouse_pressed)
-    othbutton.draw(mouse_pos,mouse_pressed)
+            tttbutton.draw(mouse_pos,mouse_pressed)
+            c4button.draw(mouse_pos,mouse_pressed)
+            othbutton.draw(mouse_pos,mouse_pressed)
 
-    for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            gameName="exit" 
+            for event in pygame.event.get():
+                if event.type==pygame.QUIT:
+                    exit_status="main_menu"
 
-        if event.type==pygame.KEYDOWN:
-            if event.key==pygame.K_ESCAPE:
-                gameName="exit"
+                if event.type==pygame.KEYDOWN:
+                    if event.key==pygame.K_ESCAPE:
+                        exit_status="main_menu"
 
-        blitz_turn_time=10
-        if event.type==pygame.MOUSEBUTTONUP:
-            if tttbutton.mouse_over(mouse_pos):
-                gameName="tictactoe"
-                while exit_status=="play_game":
-                    time_control=time_control_menu()
-                    turn=toss()
-                    winner,loser,exit_status=ttt.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
-                    if not (exit_status=="incomplete"):
-                        update()
-                    
-            if c4button.mouse_over(mouse_pos):
-                gameName="connect4"
-                while exit_status=="play_game":
-                    time_control=time_control_menu()
-                    turn=toss()
-                    winner,loser,exit_status=cf.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
-                    if not (exit_status=="incomplete"):
-                        update()
+                blitz_turn_time=10
+                if event.type==pygame.MOUSEBUTTONUP:
+                    if tttbutton.mouse_over(mouse_pos):
+                        gameName="tictactoe"
+                        while exit_status=="play_game":
+                            time_control=time_control_menu()
+                            turn=toss()
+                            winner,loser,exit_status=ttt.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
+                            if not (exit_status=="incomplete"):
+                                update_data()
+                            
+                    if c4button.mouse_over(mouse_pos):
+                        gameName="connect4"
+                        while exit_status=="play_game":
+                            time_control=time_control_menu()
+                            turn=toss()
+                            winner,loser,exit_status=cf.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
+                            if not (exit_status=="incomplete"):
+                                update_data()
 
 
-            if othbutton.mouse_over(mouse_pos):
-                gameName="othello"
-                while exit_status=="play_game":
-                    time_control=time_control_menu()
-                    turn=toss()
-                    winner,loser,exit_status=oth.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
-                    if not (exit_status=="incomplete"):    
-                        update()
-                        
-    if not (exit_status=="play_game"):
+                    if othbutton.mouse_over(mouse_pos):
+                        gameName="othello"
+                        while exit_status=="play_game":
+                            time_control=time_control_menu()
+                            turn=toss()
+                            winner,loser,exit_status=oth.play(screen,clock,font,username1,username2,turn,time_control,blitz_turn_time)
+                            if not (exit_status=="incomplete"):    
+                                update_data()
+            pygame.display.flip()
+            clock.tick(60)
+
+    if choice=="leaderboard":
         show_leaderboard()
-        play_again=True
-        os.environ['SDL_VIDEO_CENTERED']='1'
-    pygame.display.flip()
-    clock.tick(60)
+        screen=pygame.display.set_mode(Coord(SCREEN_WIDTH,SCREEN_HEIGHT))
+        

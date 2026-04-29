@@ -31,11 +31,11 @@ filepath=".user_files/.stats_${gameName}.csv"
 touch ${filepath} #create file if not exist
 
 if [[ "$metric" == "wins" ]]; then
-	preprocess ${filename} | sort -t ',' -k2,2nr -k3,3n | postprocess >> temp.csv
+	preprocess ${filepath} | sort -t ',' -k2,2nr -k3,3n | postprocess >> temp.csv
 elif [[ "$metric" == "losses" ]]; then
-	preprocess ${filename} | sort -t ',' -k3,3nr -k2,2n | postprocess >> temp.csv
+	preprocess ${filepath} | sort -t ',' -k3,3nr -k2,2n | postprocess >> temp.csv
 elif [[ "$metric" == "ratio" ]]; then
-	preprocess ${filename} | sort -t ',' -k4,4nr -k2,2nr | postprocess >> temp.csv
+	preprocess ${filepath} | sort -t ',' -k4,4nr -k2,2nr | postprocess >> temp.csv
 fi
 
 column -t -s ',' temp.csv

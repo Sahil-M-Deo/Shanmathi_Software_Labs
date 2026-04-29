@@ -285,7 +285,8 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
                             exit_status="play_game"
                             running=False #go back to game.py, (stats will be updated and shown there)
                         if main_menu.mouse_over(mouse_pos):
-                            running=False      # go back to game.py, (stats will be updated and shown there)
+                            exit_status="main_menu"
+                            running=False #go back to game.py, (stats will be updated and shown there)
                                               
         #Grid:
         draw_board()

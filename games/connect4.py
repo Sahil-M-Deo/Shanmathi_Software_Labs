@@ -102,8 +102,8 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         nonlocal hover_red_disc
         r*=1.68
 
-        red_disc_img=pygame.image.load(".images/red_disc.png").convert_alpha()
-        yellow_disc_img=pygame.image.load(".images/yellow_disc.png").convert_alpha()
+        red_disc_img=pygame.image.load("images/red_disc.png").convert_alpha()
+        yellow_disc_img=pygame.image.load("images/yellow_disc.png").convert_alpha()
 
         red_disc=pygame.transform.smoothscale(red_disc_img,Coord(2*r,2*r))
         red_disc.set_alpha(255)

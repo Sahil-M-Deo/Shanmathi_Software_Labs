@@ -3,31 +3,14 @@
 A multi-user game hub built using **Bash, Python, and Pygame**, with authentication, multiple games, and persistent leaderboards.
 
 ---
+##How to setup the game hub
+- run `pip install numpy pygame matplotlib` on terminal
 
-##  Overview
-
-- Two users authenticate via Bash
-- Python (Pygame) handles gameplay
-- Results stored in `history.csv`
-- Leaderboards and analytics generated
----
-
-##  Features
-
-###  Authentication
-- SHA-256 hashed passwords
-- Stored in `users.tsv`
-- Login + registration support
-- Two-player authentication
-- **3-attempt limit per user**
-- **Temporary lockout using time-based restriction (tracks last failed attempt)**
-
----
-
-###  Game Engine
-- GUI-based menu (Pygame)
-- Base class for all games
----
+##How to Play
+- Run `bash main.sh` on terminal in hub folder
+- Enter username and password for both players
+- Register username by entering new password if not already registered
+- Navigate through the games by using buttons, press escape to exit
 
 ###  Games
 - Tic-Tac-Toe (10*10)
@@ -35,68 +18,6 @@ A multi-user game hub built using **Bash, Python, and Pygame**, with authenticat
 - Connect Four (7*7)
 ---
 
-##  File Structure
-
-```
-hub/
-├── main.sh
-├── game.py
-├── leaderboard.sh
-├── games/ (one .py file per game and one file containing the class Game inherited by all games)
-├── users.tsv
-└── history.csv
-```
-
----
-
-##  Design
-
-- Common base class:
-  - Players, turns, board (NumPy)
-  - Win-condition abstraction
-- Each game implemented separately
-- Clear separation:
-  - Bash → auth + leaderboard
-  - Python → gameplay
-
----
-
-##  Performance Improvement
-
-Denote number of games to be n, number of users to be u
-
-**Issue:** Recomputing stats from `history.csv` each time is O(nlogn+n) after every game, since we have to sort by user and combine stats pertaining to different games
-
-**Solution:** Maintain incremental stats: O(u) after every game
-- Update per-user stats after each match
-- Simple linear-scan
-
-Note: It is logical to conclude that n>u so this optimisation is very much justified, this requires every user to play on an average at least two games (Sum of degrees of vertices = number of edges/2)
-
-**Result:** Faster and scalable leaderboard generation.
-
----
-
-##  Leaderboard
-
-- Tracks wins, losses, ratio
-- Sorting by different metrics supported
-- Matplotlib charts:
-  - Top players
-  - Most played games
-
----
-
-
-##  Dependencies
-
-- Python 3
-- pygame-ce
-- numpy
-- matplotlib
-- os
-- time
----
 ## Ingenuity
 
 - Adding time controls to make things more exciting

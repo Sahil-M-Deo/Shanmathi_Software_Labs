@@ -1,0 +1,28 @@
+\contentsline {section}{\numberline {1}External Libraries}{2}{section.1}%
+\contentsline {section}{\numberline {2}Design \& Architecture}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Authentication System (Bash)}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Leaderboard System}{2}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Game Class Abstraction}{2}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Rendering and Scaling}{3}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Event Handling and Game Loop}{3}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Win Detection}{3}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}Animations}{3}{subsection.2.7}%
+\contentsline {subsection}{\numberline {2.8}Blitz Mode}{3}{subsection.2.8}%
+\contentsline {subsection}{\numberline {2.9}User Interface Components}{4}{subsection.2.9}%
+\contentsline {subsection}{\numberline {2.10}Othello Move Logic}{4}{subsection.2.10}%
+\contentsline {subsection}{\numberline {2.11}Connect 4 Mechanics}{4}{subsection.2.11}%
+\contentsline {subsection}{\numberline {2.12}Flowchart:}{4}{subsection.2.12}%
+\contentsline {section}{\numberline {3}Features Implemented}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Authentication System}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Blitz Feature}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Animations}{5}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Performance Optimization}{5}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Abstractions}{5}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Directory Structure}{6}{section.4}%
+\contentsline {section}{\numberline {5}Installation \& Setup}{6}{section.5}%
+\contentsline {section}{\numberline {6}Usage}{6}{section.6}%
+\contentsline {section}{\numberline {7}Retrospective}{8}{section.7}%
+\contentsline {section}{\numberline {8}What we would do differently with 10 more hours}{9}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Code Architecture Improvements}{9}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}User Experience Enhancements}{9}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Feature Expansion}{9}{subsection.8.3}%

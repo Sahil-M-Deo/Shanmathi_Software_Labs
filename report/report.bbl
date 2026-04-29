@@ -1,0 +1,125 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{nty/global//global/global}
+  \entry{pygame_transparency}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{title}{How to Draw a Semi-Transparent Circle in Pygame}
+    \verb{url}
+    \verb https://stackoverflow.com/questions/51229740/how-to-draw-a-semi-trans
+    \verb parent-circle-in-pygame
+    \endverb
+  \endentry
+
+  \entry{numpy_setflags}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{title}{How to Make a NumPy Array Read-Only}
+    \verb{url}
+    \verb https://www.geeksforgeeks.org/python/how-to-make-a-numpy-array-read-o
+    \verb nly/
+    \endverb
+  \endentry
+
+  \entry{latex_hyperlinks}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{title}{Hyperlinks in LaTeX}
+    \verb{url}
+    \verb https://www.overleaf.com/learn/latex/Hyperlinks
+    \endverb
+  \endentry
+
+  \entry{directory_tree}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{title}{Making a Simple Directory Tree}
+    \verb{url}
+    \verb https://tex.stackexchange.com/questions/5073/making-a-simple-director
+    \verb y-tree
+    \endverb
+  \endentry
+
+  \entry{numpy_basics}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{N}
+    \field{sortinithash}{N}
+    \field{title}{NumPy Absolute Beginners Guide}
+    \verb{url}
+    \verb https://numpy.org/doc/stable/user/absolute_beginners.html
+    \endverb
+  \endentry
+
+  \entry{pygame_draw}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{title}{Pygame Draw Module Documentation}
+    \verb{url}
+    \verb https://www.pygame.org/docs/ref/draw.html
+    \endverb
+  \endentry
+
+  \entry{pygame_surface}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{title}{Pygame Surface Documentation}
+    \verb{url}
+    \verb https://www.pygame.org/docs/ref/surface.html#pygame.Surface
+    \endverb
+  \endentry
+
+  \entry{pygame_transform}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{title}{Pygame Transform Smoothscale}
+    \verb{url}
+    \verb https://www.pygame.org/docs/ref/transform.html#pygame.transform.smoot
+    \verb hscale
+    \endverb
+  \endentry
+
+  \entry{matplotlib_spines}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{Spines Demo}
+    \verb{url}
+    \verb https://matplotlib.org/stable/gallery/spines/spines.html
+    \endverb
+  \endentry
+
+  \entry{matplotlib_subplots}{online}{}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{Subplots Demo}
+    \verb{url}
+    \verb https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subpl
+    \verb ots_demo.html
+    \endverb
+  \endentry
+\enddatalist
+\endinput

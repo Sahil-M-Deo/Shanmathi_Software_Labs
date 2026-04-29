@@ -19,10 +19,13 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
     
     pygame.display.set_caption("Connect 4")
     
-    #window variables
+    #display sizes
     info=pygame.display.Info()
-    width=info.current_w
-    height=info.current_h
+    SCREEN_WIDTH=info.current_w
+    SCREEN_HEIGHT=info.current_h
+    SAHIL_WIDTH=1536
+    SAHIL_HEIGHT=864
+    screen=pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
     tickrate=60
     bg_color=BLACK
     #
@@ -71,10 +74,10 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         return False
     
     game = Game(checkWin,7,7,Size(105))
-    x_start=Size(width/2-game.boardWIDTH*game.cell_size/2)
-    x_end=Size(width/2+game.boardWIDTH*game.cell_size/2)
-    y_start=Size(height-game.boardHEIGHT*game.cell_size+69)/2
-    y_end=Size(height+game.boardHEIGHT*game.cell_size)/2
+    x_start=Size(SAHIL_WIDTH/2-game.boardWIDTH*game.cell_size/2)
+    x_end=Size(SAHIL_WIDTH/2+game.boardWIDTH*game.cell_size/2)
+    y_start=Size(SAHIL_HEIGHT-game.boardHEIGHT*game.cell_size+69)/2
+    y_end=Size(SAHIL_HEIGHT+game.boardHEIGHT*game.cell_size)/2
     r=Size(game.cell_size*0.415)
     filled=0 #number of filled cells
     #
@@ -220,7 +223,7 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
     box_width=500
     box_height=300
     box_rect=Rect(0,0,box_width,box_height)
-    box_rect.center=Coord(width/2,height/2)
+    box_rect.center=Coord(SAHIL_WIDTH/2,SAHIL_HEIGHT/2)
     #
     
     #The two buttons

@@ -16,10 +16,13 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         
     pygame.display.set_caption("TicTacToe")
     
-    #window variables
+    #display sizes
     info=pygame.display.Info()
-    width=info.current_w
-    height=info.current_h
+    SCREEN_WIDTH=info.current_w
+    SCREEN_HEIGHT=info.current_h
+    SAHIL_WIDTH=1536
+    SAHIL_HEIGHT=864
+    screen=pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
     tickrate=60
     bg_color=BLACK
     #
@@ -80,12 +83,12 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
         else:
             return False
     
-    game = Game(checkWin,10,10,Size(70))
-    x_start=Size(width/2-game.boardWIDTH*game.cell_size/2)
-    x_end=Size(width/2+game.boardWIDTH*game.cell_size/2)
-    y_start=Size(height-game.boardHEIGHT*game.cell_size)/2
-    y_end=Size(height+game.boardHEIGHT*game.cell_size)/2
-    r=Size(game.cell_size*0.34)
+    game=Game(checkWin,10,10,Size(70))
+    x_start=Size(SAHIL_WIDTH/2-game.boardWIDTH*game.cell_size/2)
+    x_end=Size(SAHIL_WIDTH/2+game.boardWIDTH*game.cell_size/2)
+    y_start=Size(SAHIL_HEIGHT/2-game.boardHEIGHT*game.cell_size/2)
+    y_end=Size(SAHIL_HEIGHT/2+game.boardHEIGHT*game.cell_size/2)
+    r=game.cell_size*0.34
 
     game.switchTurn()
     #username1 is turn=False represented by Circle
@@ -215,7 +218,7 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
     box_width=500
     box_height=300
     box_rect=Rect(0,0,box_width,box_height)
-    box_rect.center=Coord(width/2,height/2)
+    box_rect.center=Coord(SAHIL_WIDTH/2,SAHIL_HEIGHT/2)
     #
     
     #The two buttons
@@ -251,6 +254,7 @@ def play(screen,clock,font,username1,username2,turn,game_mode,blitz_turn_time):
                 end(1)
 
         x,y=mouse_pos=pygame.mouse.get_pos()
+    
         mouse_pressed=pygame.mouse.get_pressed()[0]
         col = int((x-x_start)//game.cell_size)
         row = int((y-y_start)//game.cell_size)

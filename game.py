@@ -17,7 +17,6 @@ import games.othello as oth
 
 #centers the window
 import os
-os.environ['SDL_VIDEO_CENTERED']='1'
 #
 
 #pygame setup
@@ -32,6 +31,8 @@ pygame.display.set_caption("Game Hub")
 info=pygame.display.Info()
 SCREEN_WIDTH=info.current_w
 SCREEN_HEIGHT=info.current_h
+SAHIL_WIDTH=1536
+SAHIL_HEIGHT=864
 screen=pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 #
 
@@ -89,8 +90,8 @@ def toss():
     seg_time=total_time/(steps)
 
     # -------- BAR SETUP --------
-    bar_w,bar_h=SCREEN_WIDTH/1.5,SCREEN_HEIGHT/7.5
-    bar_x,bar_y=SCREEN_WIDTH/2,SCREEN_HEIGHT/2
+    bar_w,bar_h=SAHIL_WIDTH/1.5,SAHIL_HEIGHT/7.5
+    bar_x,bar_y=SAHIL_WIDTH/2,SAHIL_HEIGHT/2
     bar_rect=Rect(bar_x-bar_w/2,bar_y-bar_h/2,bar_w,bar_h)
     
     #Player name boxes
@@ -102,7 +103,7 @@ def toss():
     left_box=Box(screen,left_box_rect,username1,fill_color=BLACK,border_color=BLACK,font_color=TOSS_RED)
     right_box=Box(screen,right_box_rect,username2,fill_color=BLACK,border_color=BLACK,font_color=TOSS_BLUE)
 
-    overlay=pygame.Surface(Coord(SCREEN_WIDTH,SCREEN_HEIGHT),pygame.SRCALPHA)
+    overlay=pygame.Surface(Coord(SAHIL_WIDTH,SAHIL_HEIGHT),pygame.SRCALPHA)
     overlay.fill((*BLACK,180))
     
     font=pygame.font.Font(None,100)
@@ -168,10 +169,10 @@ def toss():
 
 def time_control_menu():
     ClassicRect=Rect(0,0,300,100)
-    ClassicRect.center=Coord(SCREEN_WIDTH/2,2*SCREEN_HEIGHT/5)
+    ClassicRect.center=Coord(SAHIL_WIDTH/2,2*SAHIL_HEIGHT/5)
     ClassicButton=Button(screen,ClassicRect,"Classic","menu")
     BlitzRect=Rect(0,0,300,100)
-    BlitzRect.center=Coord(SCREEN_WIDTH/2,3*SCREEN_HEIGHT/5)
+    BlitzRect.center=Coord(SAHIL_WIDTH/2,3*SAHIL_HEIGHT/5)
     BlitzButton=Button(screen,BlitzRect,"Blitz","menu")
     tickrate=60
     menu=True
@@ -313,10 +314,10 @@ def update_data():
 def main_menu(screen,clock):
     #button setup
     playRect=Rect(0,0,300,100)
-    playRect.center=Coord(SCREEN_WIDTH/2,2*SCREEN_HEIGHT/5)
+    playRect.center=Coord(SAHIL_WIDTH/2,2*SAHIL_HEIGHT/5)
 
     leaderRect=Rect(0,0,300,100)
-    leaderRect.center=Coord(SCREEN_WIDTH/2,3*SCREEN_HEIGHT/5)
+    leaderRect.center=Coord(SAHIL_WIDTH/2,3*SAHIL_HEIGHT/5)
 
     playButton=Button(screen,playRect,"Play","menu")
     leaderButton=Button(screen,leaderRect,"Leaderboard","menu")
@@ -355,7 +356,7 @@ def main_menu(screen,clock):
 
 def show_leaderboard():
     global screen
-    screen=pygame.display.set_mode((round(2*SCREEN_WIDTH/3),round(2*SCREEN_HEIGHT/3)))
+    screen=pygame.display.set_mode((round(2*SAHIL_WIDTH/3),round(2*SAHIL_HEIGHT/3)))
 
     pygame.display.set_caption("Leaderboard")
     
@@ -513,11 +514,11 @@ def show_leaderboard():
 #menu buttons
 #Buttondef __init__(self,screen,rect,text,fill_color=GRAY_2,border_color=DULL_WHITE,mode="menu",border_thickness=3,border_radius=15):
 tttRect=Rect(0,0,300,100)
-tttRect.center=Coord(SCREEN_WIDTH/2,200)
+tttRect.center=Coord(SAHIL_WIDTH/2,200)
 c4Rect=Rect(0,0,300,100)
-c4Rect.center=Coord(SCREEN_WIDTH/2,350)
+c4Rect.center=Coord(SAHIL_WIDTH/2,350)
 othRect=Rect(0,0,300,100)
-othRect.center=Coord(SCREEN_WIDTH/2,500)
+othRect.center=Coord(SAHIL_WIDTH/2,500)
 tttbutton=Button(screen,tttRect,"TicTacToe","menu")
 c4button=Button(screen,c4Rect,"Connect4","menu")
 othbutton=Button(screen,othRect,"Othello","menu")
@@ -582,5 +583,5 @@ while main_loop:
 
     if choice=="leaderboard":
         show_leaderboard()
-        screen=pygame.display.set_mode(Coord(SCREEN_WIDTH,SCREEN_HEIGHT))
+        screen=pygame.display.set_mode(Coord(SAHIL_WIDTH,SAHIL_HEIGHT))
         

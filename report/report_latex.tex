@@ -207,7 +207,39 @@ pip install numpy pygame matplotlib
 \end{verbatim}
 
 \section{Usage}
-\texttt{bash main.sh}
+
+Run the main script to start the application:
+\begin{verbatim}
+bash main.sh
+\end{verbatim}
+
+\subsection*{Main Menu}
+After launching, the main menu is displayed with options to start a game or view the leaderboard.
+
+\begin{center}
+\includegraphics[width=0.6\textwidth]{images/Main_menu.png}
+\end{center}
+
+\subsection*{Authentication}
+Two users are prompted to log in via the terminal. Each user has up to three attempts before a temporary lockout.
+
+\begin{center}
+\includegraphics[width=0.6\textwidth]{images/use_main.sh.png}
+\end{center}
+
+\subsection*{Leaderboard Menu}
+Users can view statistics sorted by wins, losses, or win/loss ratio, and also filter by game.
+
+\begin{center}
+\includegraphics[width=0.6\textwidth]{images/Use_leaderboard.png}
+\end{center}
+
+\subsection*{Leaderboard Output}
+The leaderboard is displayed in the terminal in a formatted table.
+
+\begin{center}
+\includegraphics[width=0.6\textwidth]{images/leaderboard_result.png}
+\end{center}
 
 \section{Retrospective}
 \begin{itemize}
@@ -225,7 +257,8 @@ pip install numpy pygame matplotlib
     \emph{Fix:} Used int(time\_ns())
     \item Unnecessary complicated scaling by introducing a Size class - \\
     \emph{Fix:} Removed overcomplicated Size class, changed it to simple scaling functions 
-
+	\item Pygame Events during toss() like random clicks and ESCAPE were getting transferred to next loop - \\
+    \emph{Fix:} \texttt{pygame.event.clear()}
 \end{itemize}
 
 \section{What we would do differently with 10 more hours}

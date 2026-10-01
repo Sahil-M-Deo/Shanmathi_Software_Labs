@@ -1,9 +1,18 @@
 \documentclass[12pt]{article}
 \usepackage[a4paper, margin=1in]{geometry}
+\usepackage[T1]{fontenc}
 \usepackage{graphicx} % Required for inserting images
 \usepackage[backend=bibtex]{biblatex}
 \usepackage{hyperref}
 \usepackage{dirtree}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\lstset{basicstyle=\ttfamily\small, columns=fullflexible, keepspaces=true, frame=single,
+        backgroundcolor=\color{gray!8}, rulecolor=\color{gray!40}, xleftmargin=0.5em, xrightmargin=0.5em,
+        aboveskip=0.6em, belowskip=0.6em, showstringspaces=false, upquote=true}
 \title{\textbf{Mini Game Hub}}
 \author{Larissa \\ Sahil Deo}
 \date{\today}
@@ -11,6 +20,77 @@
 \begin{document}
 \maketitle
 \tableofcontents
+\clearpage
+\section{Security: Bash-Specific Vulnerabilities in Authentication}
+
+The login in \texttt{main.sh} reads untrusted text from the keyboard and splices it into \texttt{grep} and \texttt{sed} patterns and into the tab- and comma-separated files that store accounts and lockouts. Bash has several quirks that turn this kind of code into a security problem: it can silently rewrite input, treat data as command options, or treat data as a pattern. This section lists each risk we considered, how the code deals with it, and one rare bug we found and fixed while reviewing our own code.
+
+\subsection{Option injection into \texttt{echo} (found and fixed)}
+Passwords were hashed with
+\begin{lstlisting}
+hash(){ echo -n "$@" | sha256sum | cut -d ' ' -f 1; }
+\end{lstlisting}
+The \texttt{-n} was there to stop \texttt{echo} adding a trailing newline, which would change the hash. The flaw is that Bash's \texttt{echo} does not accept \texttt{-{}-} to end its options, so it reads its \emph{argument} as more options whenever that argument looks like one \cite{bash_builtins}. A password of \texttt{-n}, \texttt{-e} or \texttt{-E} (or combinations such as \texttt{-ne}) is swallowed as a flag, nothing is printed, and the password is stored as the SHA-256 hash of the \emph{empty string}:
+\begin{lstlisting}
+$ echo -n "-n" | sha256sum      # e3b0c442...  (same as the empty string)
+$ echo -n ""   | sha256sum      # e3b0c442...
+$ printf '%s' "-n" | sha256sum  # 5249f4fc...  (correct)
+\end{lstlisting}
+Two things go wrong. All of these passwords collide with each other, and an account whose password is \texttt{-n} can be entered by pressing Enter at the password prompt. The fix is to print with \texttt{printf}, whose format string is fixed, so the password is only ever data:
+\begin{lstlisting}
+hash(){ printf '%s' "$*" | sha256sum | cut -d ' ' -f 1; }
+\end{lstlisting}
+
+\subsection{Input that \texttt{read} silently rewrites}
+\begin{itemize}
+    \item \textbf{Backslashes.} Plain \texttt{read} treats a backslash as an escape character and deletes it, so the password \texttt{a\textbackslash b} would be stored as \texttt{ab}. Every \texttt{read} uses \texttt{-r}, which keeps backslashes literal.
+    \item \textbf{Leading and trailing spaces (fixed).} Even with \texttt{-r}, \texttt{read} trims leading and trailing spaces and tabs using \texttt{IFS}, so \texttt{" pw "} and \texttt{"pw"} were the same password. Password prompts now use \texttt{IFS= read -r -s}, which keeps every character.
+    \item \textbf{Echoing.} Passwords are read with \texttt{-s}, so they are never shown on screen.
+\end{itemize}
+
+\subsection{Pattern and record injection through usernames}
+The username is placed directly inside regular expressions and a \texttt{sed} command:
+\begin{lstlisting}
+grep -q  "^${name}${tab}"          .user_files/.users.tsv
+grep -E  "^${username},[0-9]+$"    .system_files/.failed_logins.csv
+sed  -i  "/^$line$/d"              .system_files/.failed_logins.csv
+\end{lstlisting}
+A username such as \texttt{.*} would match other users' rows, a \texttt{/} would break out of the \texttt{sed} address, and a tab, comma or newline would let a user write forged rows into the account or lockout files. We prevent all of these by accepting only usernames that match \texttt{\^{}[a-zA-Z0-9\_]+\$}. Such a name contains no regex metacharacters, no \texttt{sed} delimiter and none of the file delimiters, so it can be inserted into these patterns safely.
+
+\subsection{Checking the password}
+The credential check builds the line \texttt{username<TAB>hash} and looks for it with
+\begin{lstlisting}
+grep -Fxq "$line" .user_files/.users.tsv
+\end{lstlisting}
+\texttt{-F} treats the line as a fixed string rather than a regex, and \texttt{-x} requires the whole line to match \cite{grep_manual}, so no partial or prefix match can authenticate a user. Because only the 64-character hexadecimal hash is ever stored or compared, special characters in a password (quotes, backslashes, tabs, \texttt{\$}) can never reach a file or a pattern.
+
+\subsection{Other Bash hazards}
+\begin{itemize}
+    \item \textbf{Word splitting and globbing.} Every expansion of user input is double-quoted (\texttt{"\$u1"}, \texttt{"\$pwd"}), so a \texttt{*} or a space in input is never expanded into file names or split into several arguments.
+    \item \textbf{Passwords in the process list.} \texttt{printf} is a Bash builtin and the password reaches \texttt{sha256sum} through a pipe, so it never appears as a command-line argument visible to other users through \texttt{ps}.
+    \item \textbf{Brute force.} After three wrong passwords the account is locked for 60 seconds, with the lock time recorded in \texttt{.system\_files/.failed\_logins.csv}.
+\end{itemize}
+
+\subsection{Summary and remaining limitations}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.6cm}}
+\toprule
+\textbf{Risk} & \textbf{Effect if unhandled} & \textbf{Defence} \\
+\midrule
+Option injection into \texttt{echo} & Passwords \texttt{-n}, \texttt{-e}, \texttt{-E} hash as the empty string & \texttt{printf '\%s'} (fixed) \\
+Backslash escapes in \texttt{read} & Backslashes silently removed & \texttt{read -r} \\
+Whitespace trimming in \texttt{read} & Leading/trailing spaces ignored & \texttt{IFS= read -r} (fixed) \\
+Regex / \texttt{sed} injection & Matching or deleting other users' rows & Username whitelist \\
+Delimiter injection & Forged account or lockout rows & Username whitelist; only hashes stored \\
+Partial matches & Logging in on a prefix match & \texttt{grep -Fx} \\
+Word splitting, globbing & Input expanded or split & Quoting every expansion \\
+Password guessing & Unlimited attempts & 60-second lockout \\
+\bottomrule
+\end{tabularx}
+\end{center}
+Two weaknesses remain and are listed under future work: the hashes are unsalted SHA-256, which is fast to brute-force if \texttt{.users.tsv} leaks (a salted, deliberately slow hash such as bcrypt or Argon2 would be better), and the data files are hidden but not protected by file permissions.
+
 \clearpage
 \section{External Libraries}
 \begin{itemize}
@@ -35,6 +115,7 @@ User authentication is handled via shell scripts:
     \item User credentials are stored in \texttt{.users.tsv} with SHA-256 hashed passwords.
     \item Login allows 3 attempts before temporary lockout.
     \item Lockout timestamps are stored in \texttt{.failed\_logins.csv}.
+    \item Defences against Bash-specific attacks are described in Section~1.
 \end{itemize}
 
 \subsection{Leaderboard System}
@@ -287,6 +368,8 @@ The leaderboard is displayed in the terminal in a formatted table.
     \emph{Fix:} Used int(time\_ns())
     \item Unnecessary complicated scaling by introducing a Size class - \\
     \emph{Fix:} Removed overcomplicated Size class, changed it to simple scaling functions 
+    \item Passwords \texttt{-n}, \texttt{-e} and \texttt{-E} were hashed as the empty string, because \texttt{echo -n "\$@"} read them as options - \\
+    \emph{Fix:} Hash with \texttt{printf '\%s' "\$*"} instead (Section~1.1) \cite{bash_builtins}
 	\item Pygame Events during toss() like random clicks and ESCAPE were getting transferred to next loop - \\
     \emph{Fix:} \texttt{pygame.event.clear()}
 \end{itemize}
@@ -298,6 +381,7 @@ The leaderboard is displayed in the terminal in a formatted table.
 \item Introduce a state-machine type flow for game.py to simplify the logic 
 \item Create a Menu Class with Button and Box as subclass
 \item Use enums for things like whose turn is it to avoid all the confusion during development
+\item Replace unsalted SHA-256 with a salted, slow password hash (bcrypt or Argon2) and restrict permissions on the data files
 \end{itemize}
 
 \subsection{User Experience Enhancements}

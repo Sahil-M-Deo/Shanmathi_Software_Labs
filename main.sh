@@ -39,14 +39,16 @@ username_exists(){
 }
 
 hash(){
-	echo -n "$@" | sha256sum | cut -d ' ' -f 1 #echo -n to avoid the trailing newline as it will change the hash
+	# printf, not echo -n: echo would treat a password such as "-n", "-e" or "-E" as an option
+	# and hash the empty string. printf '%s' prints its argument exactly, with no trailing newline.
+	printf '%s' "$*" | sha256sum | cut -d ' ' -f 1
 }
 
 create_user(){
 	echo "Username not found, creating new account:"
 	local name="$@"
 	local pwd
-	read -r -s -p "Enter password: " pwd
+	IFS= read -r -s -p "Enter password: " pwd
 	echo ""
 	local hash_pwd=$(hash "$pwd")
 	echo "${name}${tab}${hash_pwd}" >> ".user_files/.users.tsv"
@@ -70,7 +72,7 @@ handle_three_attempts(){
 	while ((attempts>0))
 	do
 		local pwd
-	    read -r -s -p "Enter pwd: " pwd
+	    IFS= read -r -s -p "Enter pwd: " pwd
 		echo ""
 	    local hash_pwd=$(hash "$pwd")
 	    if auth_user "${username}${tab}${hash_pwd}"
